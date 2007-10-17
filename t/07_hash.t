@@ -50,7 +50,7 @@ is_deeply(
 );
 
 ok($o1->a_hash_exists('b'), 'exists() with an existing key');
-ok(!$o1->a_hash_exists('f'), 'exists() with a non-existing key');
+ok(!$o1->exists_a_hash('f'), 'exists() with a non-existing key');
 ok(!$o1->a_hash_exists('f'), "check exists() doesn't autovivify");
 
 $o1->a_hash_delete(qw/c g/);
@@ -84,7 +84,7 @@ is_deeply(
 $o1->a_hash_clear;
 
 is_deeply(
-    [ $o1->a_hash_keys ],
+    [ $o1->keys_a_hash],
     [],
     'clear'
 );

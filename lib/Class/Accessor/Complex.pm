@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 use base 'Class::Accessor';
@@ -55,6 +55,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::push_${field}"} =
         *{"${class}::${field}_push"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_push"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -63,6 +64,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::pop_${field}"} =
         *{"${class}::${field}_pop"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_pop"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -70,6 +72,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::unshift_${field}"} =
         *{"${class}::${field}_unshift"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_unshift"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -78,6 +81,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::shift_${field}"} =
         *{"${class}::${field}_shift"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_shift"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -85,6 +89,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::clear_${field}"} =
         *{"${class}::${field}_clear"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -92,6 +97,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::count_${field}"} =
         *{"${class}::${field}_count"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_count"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -99,6 +105,7 @@ sub mk_array_accessors {
         };
 
 
+        *{"${class}::set_${field}"} =
         *{"${class}::${field}_set"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_set"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -160,6 +167,7 @@ sub mk_hash_accessors {
         };
 
 
+        *{"${class}::clear_${field}"} =
         *{"${class}::${field}_clear"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -168,6 +176,7 @@ sub mk_hash_accessors {
         };
 
 
+        *{"${class}::keys_${field}"} =
         *{"${class}::${field}_keys"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_keys"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -175,12 +184,14 @@ sub mk_hash_accessors {
         };
 
 
+        *{"${class}::values_${field}"} =
         *{"${class}::${field}_values"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_values"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
             values %{$_[0]->{$field}};
         };
 
+        *{"${class}::exists_${field}"} =
         *{"${class}::${field}_exists"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_exists"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -189,6 +200,7 @@ sub mk_hash_accessors {
         };
 
 
+        *{"${class}::delete_${field}"} =
         *{"${class}::${field}_delete"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -243,6 +255,7 @@ sub mk_class_hash_accessors {
         };
 
 
+        *{"${class}::clear_${field}"} =
         *{"${class}::${field}_clear"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -250,6 +263,7 @@ sub mk_class_hash_accessors {
         };
 
 
+        *{"${class}::keys_${field}"} =
         *{"${class}::${field}_keys"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_keys"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -257,12 +271,14 @@ sub mk_class_hash_accessors {
         };
 
 
+        *{"${class}::values_${field}"} =
         *{"${class}::${field}_values"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_values"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
             values %hash;
         };
 
+        *{"${class}::exists_${field}"} =
         *{"${class}::${field}_exists"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_exists"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -271,6 +287,7 @@ sub mk_class_hash_accessors {
         };
 
 
+        *{"${class}::delete_${field}"} =
         *{"${class}::${field}_delete"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -328,12 +345,14 @@ sub mk_boolean_accessors {
             $_[0]->{$field} = $_[1] ? 1 : 0;   # normalize
         };
 
+        *{"${class}::set_${field}"} =
         *{"${class}::${field}_set"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_set"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
             $_[0]->{$field} = 1;
         };
 
+        *{"${class}::clear_${field}"} =
         *{"${class}::${field}_clear"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -361,6 +380,7 @@ sub mk_integer_accessors {
         };
 
 
+        *{"${class}::reset_${field}"} =
         *{"${class}::${field}_reset"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_reset"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -368,6 +388,7 @@ sub mk_integer_accessors {
         };
 
 
+        *{"${class}::inc_${field}"} =
         *{"${class}::${field}_inc"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_inc"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -375,6 +396,7 @@ sub mk_integer_accessors {
         };
 
 
+        *{"${class}::dec_${field}"} =
         *{"${class}::${field}_dec"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_dec"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -409,6 +431,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::insert_${field}"} =
         *{"${class}::${insert_method}"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${insert_method}"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -417,6 +440,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::elements_${field}"} =
         *{"${class}::${elements_method}"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${elements_method}"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -426,6 +450,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::delete_${field}"} =
         *{"${class}::${field}_delete"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -434,6 +459,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::clear_${field}"} =
         *{"${class}::${field}_clear"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -441,6 +467,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::contains_${field}"} =
         *{"${class}::${field}_contains"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_contains"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -450,6 +477,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::is_empty_${field}"} =
         *{"${class}::${field}_is_empty"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_is_empty"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -458,6 +486,7 @@ sub mk_set_accessors {
         };
 
 
+        *{"${class}::size_${field}"} =
         *{"${class}::${field}_size"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_size"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -490,6 +519,7 @@ sub mk_object_accessor {
     };
 
 
+    *{"${class}::clear_${field}"} =
     *{"${class}::${field}_clear"} = sub {
         local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
             if defined &DB::DB && !$Devel::DProf::VERSION;
@@ -587,32 +617,32 @@ reference to the storage; changes to the storage will affect the contents of
 the reference, and vice-versa. This behaviour is not guaranteed; caveat
 emptor.
 
-=item C<*_push>
+=item C<*_push>, C<push_*>
 
 Pushes the given elements onto the end of the array. Like perl's C<push()>.
 
-=item C<*_pop>
+=item C<*_pop>, C<pop_*>
 
 Pops one element off the end of the array. Like perl's C<pop()>.
 
-=item C<*_shift>
+=item C<*_shift>, C<shift_*>
 
 Shifts one element off the beginning of the array. Like perl's C<shift()>.
 
-=item C<*_unshift>
+=item C<*_unshift>, C<unshift_*>
 
 Unshifts the given elements onto the beginning of the array. Like perl's
 C<unshift()>.
 
-=item C<*_clear>
+=item C<*_clear>, C<clear_*>
 
 Deletes all elements of the array.
 
-=item C<*_count>
+=item C<*_count>, C<count_*>
 
 Returns the number of elements in the array.
 
-=item C<*_set>
+=item C<*_set>, C<set_*>
 
 Takes a list, treated as pairs of index => value; each given index is
 set to the corresponding value. No return.
@@ -645,23 +675,23 @@ hash are added to the hash.
 Called with more than one argument, treats them as a series of key/value
 pairs and adds them to the hash.
 
-=item C<*_keys>
+=item C<*_keys>, C<keys_*>
 
 Returns the keys of the hash.
 
-=item C<*_values>
+=item C<*_values>, C<values_*>
 
 Returns the list of values.
 
-=item C<*_exists>
+=item C<*_exists>, C<exists_*>
 
 Takes a single key and returns whether that key exists in the hash.
 
-=item C<*_delete>
+=item C<*_delete>, C<delete_*>
 
 Takes a list and deletes each key from the hash.
 
-=item C<*_clear>
+=item C<*_clear>, C<clear_*>
 
 Resets the hash to empty.
 
@@ -704,11 +734,11 @@ If given a true value - in the Perl sense, i.e. anything except C<undef>, C<0>
 or the empty string - it sets the slot's value to C<1>, otherwise to C<0>. If
 no argument is given, it returns the slot's value.
 
-=item C<set_*>
+=item C<*_set>, C<set_*>
 
 Sets the slot's value to C<1>.
 
-=item C<clear_*>
+=item C<*_clear>, C<clear_*>
 
 Sets the slot's value to C<0>.
 
@@ -728,15 +758,15 @@ creates methods as described below, where C<*> denotes the accessor base name.
 A basic getter/setter that stores an integer value. Actually, it can store any
 value, but when read back, it returns 0 if the value is undef.
 
-=item C<*_reset>
+=item C<*_reset>, C<reset_*>
 
 Resets the slot's value to 0.
 
-=item C<*_inc>
+=item C<*_inc>, C<inc_*>
 
 Increments the value, then returns it.
 
-=item C<*_dec>
+=item C<*_dec>, C<dec_*>
 
 Decrements the value, then returns it.
 
@@ -772,33 +802,33 @@ If called without arguments, it returns the elements in the set. If called
 with arguments, it puts those elements into the set. As such, it is a wrapper
 over C<*_insert()> and C<*_elements()>.
 
-=item C<*_insert>
+=item C<*_insert>, C<insert_*>
 
 Inserts the given elements (arguments) into the set. If you pass an array
 reference as the first argument, it is being dereferenced and used instead.
 
-=item C<*_elements>
+=item C<*_elements>, C<elements_*>
 
 Returns the elements in the set.
 
-=item C<*_delete>
+=item C<*_delete>, C<delete_*>
 
 Removes the given elements from the list. The order in which the elements are
 returned is not guaranteed.
 
-=item C<*_clear>
+=item C<*_clear>, C<clear_*>
 
 Empties the set.
 
-=item C<*_contains>
+=item C<*_contains>, C<contains_*>
 
 Given an element, it returns whether the set contains the element.
 
-=item C<*_is_empty>
+=item C<*_is_empty>, C<is_empty_*>
 
 Returns whether or not the set is empty.
 
-=item C<*_size>
+=item C<*_size>, C<size_*>
 
 Returns the number of elements in the set.
 
@@ -807,6 +837,12 @@ Returns the number of elements in the set.
 =head2 mk_object_accessor
 
 Takes as arguments, in the given order, the name of the accessor to be created, the class whose objects that accessor accepts as values, and an optional list of methods to forward to the object stored in that accessor.
+
+Creates methods as described below, where C<*> denotes the slot name.
+
+=over 4
+
+=item C<*>
 
 If the accessor is supplied with an object of an appropriate type, will set
 set the slot to that value. Else, if the slot has no value, then an object is
@@ -835,6 +871,12 @@ For example:
     # stored in $o->an_object()
 
     $o->do_that;
+
+=item C<*_clear>, C<clear_*>
+
+Removes the object from the accessor.
+
+=back
 
 =head1 TAGS
 

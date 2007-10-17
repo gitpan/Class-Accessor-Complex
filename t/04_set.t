@@ -26,7 +26,7 @@ ok($x->testset_is_empty, 'empty set');
 is($x->testset_size, 0, '0 elements in empty set');
 
 $x->testset_insert(qw/merkur venus erde/);
-is($x->testset_size, 3, '3 elements after first insert');
+is($x->size_testset, 3, '3 elements after first insert');
 is_deeply([ sort $x->testset_elements ], [ qw/erde merkur venus/ ],
     'elements returned');
 
@@ -42,10 +42,10 @@ is_deeply([ sort $x->testset_elements ], [ qw/erde mars merkur/ ],
 
 
 ok($x->testset_contains('merkur'), 'contains merkur');
-ok(!$x->testset_contains('venus'), 'does not contain venus');
-ok($x->testset_contains('erde'), 'contains erde');
+ok(!$x->contains_testset('venus'), 'does not contain venus');
+ok($x->contains_testset('erde'), 'contains erde');
 ok($x->testset_contains('mars'), 'contains mars');
 
 $x->testset_clear;
-ok($x->testset_is_empty, 'empty set after clear');
+ok($x->is_empty_testset, 'empty set after clear');
 

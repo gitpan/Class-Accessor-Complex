@@ -42,7 +42,7 @@ is_deeply(
     [ 6..11 ],
     'after shift',
 );
-is($o1->an_array_count, 6, 'count after shift');
+is($o1->count_an_array, 6, 'count after shift');
 
 $el = $o1->an_array_pop;
 is($el, 11, 'popped element');

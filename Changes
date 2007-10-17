@@ -1,5 +1,10 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.02  Mi Okt 17 22:55:15 CEST 2007
+    - as well as generating C<*_foo> methods, it now also generates C<foo_*>
+      methods so you can choose which one to use depending on which one is more
+      readable.
+
 0.01  Mi Okt 17 11:02:38 CEST 2007
     - original version
 
