@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 use base 'Class::Accessor';
@@ -102,6 +102,26 @@ sub mk_array_accessors {
             local $DB::sub = local *__ANON__ = "${class}::${field}_count"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
             exists $_[0]->{$field} ? scalar @{$_[0]->{$field}} : 0;
+        };
+
+
+        *{"${class}::splice_${field}"} =
+        *{"${class}::${field}_splice"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_splice"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, $offset, $len, @list) = @_;
+            splice(@{$self->{$field}}, $offset, $len, @list);
+        };
+
+
+        *{"${class}::index_${field}"} =
+        *{"${class}::${field}_index"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_index"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @indices) = @_;
+            my @result = map { $self->{$field}[$_] } @indices;
+            return $result[0] if @_ == 1;
+            wantarray ? @result : \@result;
         };
 
 
@@ -634,6 +654,11 @@ Shifts one element off the beginning of the array. Like perl's C<shift()>.
 Unshifts the given elements onto the beginning of the array. Like perl's
 C<unshift()>.
 
+=item C<*_splice>, C<splice_*>
+
+Takes an offset, a length and a replacement list. The arguments and behaviour
+are exactly like perl's C<splice()>.
+
 =item C<*_clear>, C<clear_*>
 
 Deletes all elements of the array.
@@ -646,6 +671,10 @@ Returns the number of elements in the array.
 
 Takes a list, treated as pairs of index => value; each given index is
 set to the corresponding value. No return.
+
+=item C<*_index>, C<index_*>
+
+Takes a list of indices and returns a list of the corresponding values. This is like an array slice.
 
 =back
 

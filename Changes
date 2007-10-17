@@ -1,5 +1,9 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.03  Mi Okt 17 23:36:30 CEST 2007
+    - mk_array_accessors() now also generates C<*_index>, C<index_*>,
+      C<*_splice> and C<splice_*>.
+
 0.02  Mi Okt 17 22:55:15 CEST 2007
     - as well as generating C<*_foo> methods, it now also generates C<foo_*>
       methods so you can choose which one to use depending on which one is more
