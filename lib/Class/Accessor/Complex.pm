@@ -1,0 +1,874 @@
+package Class::Accessor::Complex;
+
+use warnings;
+use strict;
+use Carp qw(carp croak cluck);
+use Data::Miscellany 'flatten';
+
+
+our $VERSION = '0.01';
+
+
+use base 'Class::Accessor';
+
+
+sub mk_new {
+    my ($self, $name) = @_;
+    my $class = ref $self || $self;
+    $name = 'new' unless defined $name;
+
+    no strict 'refs';
+
+    *{"${class}::${name}"} = sub {
+        local $DB::sub = local *__ANON__ = "${class}::${name}"
+            if defined &DB::DB && !$Devel::DProf::VERSION;
+        my $class = shift;
+        my $self = ref ($class) ? $class : bless {}, $class;
+        my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH') ? %{ $_[0] } : @_;
+
+        $self->$_($args{$_}) for keys %args;
+        $self->init(%args) if $self->can('init');
+        $self;
+    };
+
+    $self;  # for chaining
+}
+
+
+sub mk_array_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @list) = @_;
+            defined $self->{$field} or $self->{$field} = [];
+
+            @{$self->{$field}} = map { ref $_ eq 'ARRAY' ? @$_ : ($_) } @list
+                if @list;
+
+            wantarray ? @{$self->{$field}} : $self->{$field};
+        };
+
+
+        *{"${class}::${field}_push"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_push"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            push @{$self->{$field}} => @_;
+        };
+
+
+        *{"${class}::${field}_pop"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_pop"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            pop @{$_[0]->{$field}};
+        };
+
+
+        *{"${class}::${field}_unshift"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_unshift"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            unshift @{$self->{$field}} => @_;
+        };
+
+
+        *{"${class}::${field}_shift"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_shift"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            shift @{$_[0]->{$field}};
+        };
+
+
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = [];
+        };
+
+
+        *{"${class}::${field}_count"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_count"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            exists $_[0]->{$field} ? scalar @{$_[0]->{$field}} : 0;
+        };
+
+
+        *{"${class}::${field}_set"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_set"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+
+            my $self = shift;
+            my @args = @_;
+            croak "${class}::${field}_set expects an even number of fields\n"
+                if @args % 2;
+            while (my ($index, $value) = splice @args, 0, 2) {
+                $self->{$field}->[$index] = $value;
+            }
+            return @_ / 2;
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_hash_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @list) = @_;
+            defined $self->{$field} or $self->{$field} = {};
+            if (scalar @list == 1) {
+                my ($key) = @list;
+
+                if (my $type = ref $key) {
+                    if ($type eq 'ARRAY') {
+                        return @{$self->{$field}}{@$key};
+                    } elsif ($type eq 'HASH') {
+                        while (my ($subkey, $value) = each %$key) {
+                            $self->{$field}->{$subkey} = $value;
+                        }
+                        return wantarray ? %{$self->{$field}} : $self->{$field};
+                    } else {
+                        cluck "Unrecognized ref type for hash method: $type.";
+                    }
+                } else {
+                    return $self->{$field}->{$key};
+                }
+            } else {
+                while (1) {
+                    my $key = shift @list;
+                    defined $key or last;
+                    my $value = shift @list;
+                    defined $value or carp "No value for key $key.";
+                    $self->{$field}->{$key} = $value;
+                }
+                return wantarray ? %{$self->{$field}} : $self->{$field};
+            }
+        };
+
+
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            $self->{$field} = {};
+        };
+
+
+        *{"${class}::${field}_keys"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_keys"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            keys %{$_[0]->{$field}};
+        };
+
+
+        *{"${class}::${field}_values"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_values"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            values %{$_[0]->{$field}};
+        };
+
+        *{"${class}::${field}_exists"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_exists"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, $key) = @_;
+            exists $self->{$field} && exists $self->{$field}{$key};
+        };
+
+
+        *{"${class}::${field}_delete"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @keys) = @_;
+            delete @{$self->{$field}}{@keys};
+        };
+
+    }
+    $self;  # for chaining
+}
+
+
+sub mk_class_hash_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        my %hash;
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($class, @list) = @_;
+            if (scalar @list == 1) {
+                my ($key) = @list;
+
+                return $hash{$key} unless ref $key;
+
+                return @hash{@$key} if ref $key eq 'ARRAY';
+
+                if (ref($key) eq 'HASH') {
+                    %hash = (%hash, %$key);
+                    return wantarray ? %hash : \%hash;
+                }
+
+                # not a scalar, array or hash...
+                cluck sprintf 'Not a recognized ref type for static hash [%s]',
+                    ref($key);
+            } else {
+                 while (1) {
+                     my $key = shift @list;
+                     defined $key or last;
+                     my $value = shift @list;
+                     defined $value or carp "No value for key $key.";
+                     $hash{$key} = $value;
+                 }
+
+                return wantarray ? %hash : \%hash;
+            }
+        };
+
+
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            %hash = ();
+        };
+
+
+        *{"${class}::${field}_keys"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_keys"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            keys %hash;
+        };
+
+
+        *{"${class}::${field}_values"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_values"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            values %hash;
+        };
+
+        *{"${class}::${field}_exists"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_exists"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($class, $key) = @_;
+            exists $hash{$key};
+        };
+
+
+        *{"${class}::${field}_delete"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($class, @keys) = @_;
+            delete @hash{@keys};
+        };
+
+    }
+    $self;  # for chaining
+}
+
+
+sub mk_abstract_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $method = "${class}::${field}";
+            eval "require Error::Hierarchy::Internal::AbstractMethod";
+
+            if ($@) {
+                # Error::Hierarchy not installed?
+                die sprintf "called abstract method [%s]", $method;
+
+            } else {
+                # need to pass method because caller() still doesn't see the
+                # anonymously named sub's name
+                throw Error::Hierarchy::Internal::AbstractMethod(
+                    method => $method,
+                );
+            }
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_boolean_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            return $_[0]->{$field} if @_ == 1;
+            $_[0]->{$field} = $_[1] ? 1 : 0;   # normalize
+        };
+
+        *{"${class}::${field}_set"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_set"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = 1;
+        };
+
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = 0;
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_integer_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            return $self->{$field} || 0 unless @_;
+            $self->{$field} = shift;
+        };
+
+
+        *{"${class}::${field}_reset"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_reset"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = 0;
+        };
+
+
+        *{"${class}::${field}_inc"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_inc"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field}++;
+        };
+
+
+        *{"${class}::${field}_dec"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_dec"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field}--;
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_set_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        my $insert_method   = "${field}_insert";
+        my $elements_method = "${field}_elements";
+
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            if (@_) {
+                $self->$insert_method(@_);
+            } else {
+                $self->$elements_method;
+            }
+        };
+
+
+        *{"${class}::${insert_method}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${insert_method}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            $self->{$field}{$_}++ for flatten(@_);
+        };
+
+
+        *{"${class}::${elements_method}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${elements_method}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            $self->{$field} ||= {};
+            keys %{ $self->{$field} }
+        };
+
+
+        *{"${class}::${field}_delete"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            delete $self->{$field}{$_} for @_;
+        };
+
+
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = {};
+        };
+
+
+        *{"${class}::${field}_contains"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_contains"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, $key) = @_;
+            return unless defined $key;
+            exists $self->{$field}{$key};
+        };
+
+
+        *{"${class}::${field}_is_empty"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_is_empty"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            keys %{ $self->{$field} || {} } == 0;
+        };
+
+
+        *{"${class}::${field}_size"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_size"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            scalar keys %{ $self->{$field} || {} };
+        };
+
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_object_accessor {
+    my ($self, $field, $type, @composites) = @_;
+    my $class = ref $self || $self;
+
+    no strict 'refs';
+
+    *{"${class}::${field}"} = sub {
+        local $DB::sub = local *__ANON__ = "${class}::${field}"
+            if defined &DB::DB && !$Devel::DProf::VERSION;
+        my ($self, @args) = @_;
+        if (ref($args[0]) && UNIVERSAL::isa($args[0], $class)) {
+            $self->{$field} = $args[0];
+        } else {
+            defined $self->{$field} or $self->{$field} = $type->new(@args);
+        }
+        $self->{$field};
+    };
+
+
+    *{"${class}::${field}_clear"} = sub {
+        local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+            if defined &DB::DB && !$Devel::DProf::VERSION;
+        delete $_[0]->{$field};
+    };
+
+
+    for my $composite (@composites) {
+        *{"${class}::${composite}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${composite}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @args) = @_;
+            $self->$field()->$composite(@args);
+        };
+
+    }
+
+    $self;  # for chaining
+}
+
+
+1;
+
+__END__
+
+=head1 NAME
+
+Class::Accessor::Complex - arrays, hashes, booleans, integers, sets and more
+
+=head1 SYNOPSIS
+
+  package MyClass;
+  use base 'Class::Accessor::Complex';
+  MyClass
+      ->mk_new
+      ->mk_array_accessors(qw(an_array)),
+      ->mk_hash_accessors(qw(a_hash)),
+      ->mk_integer_accessors(qw(an_integer)),
+      ->mk_class_hash_accessors(qw(a_hash)),
+      ->mk_set_accessors(qw(testset)),
+      ->mk_object_accessor(an_object => 'Some::Foo', qw(do_this do_that));
+
+=head1 DESCRIPTION
+
+This module generates accessors for your class in the same spirit as
+L<Class::Accessor> does. While the latter deals with accessors for scalar
+values, this module provides accessor makers for arrays, hashes, integers,
+booleans, sets and more.
+
+As seen in the synopsis, you can chain calls to the accessor makers. Also,
+because this module inherits from L<Class::Accessor>, you can put a call
+to one of its accessor makers at the end of the chain.
+
+=head1 ACCESSORS
+
+This section describes the accessor makers offered by this module, and the
+methods it generates.
+
+=head2 mk_new
+
+Takes one simple string argument and creates a constructor. The constructor accepts named arguments (that is, a hash) and will set the hash values on the accessor methods denoted by the keys. For example,
+
+    package MyClass;
+    use base 'Class::Accessor::Complex';
+    MyClass->mk_new;
+
+    package main;
+    use MyClass;
+
+    my $o = MyClass->new(foo => 12, bar => [ 1..5 ]);
+
+is the same as
+
+    my $o = MyClass->new;
+    $o->foo(12);
+    $o->bar([1..5]);
+
+The constructor will also call an C<init()> method, if there is one.
+
+=head2 mk_array_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods as described below, where C<*> denotes the
+slot name.
+
+=over 4
+
+=item C<*>
+
+This method returns the list of values stored in the slot. If any arguments
+are provided to this method, they I<replace> the current list contents. In an
+array context it returns the values as an array and in a scalar context as a
+reference to the array. Note that this reference is currently a direct
+reference to the storage; changes to the storage will affect the contents of
+the reference, and vice-versa. This behaviour is not guaranteed; caveat
+emptor.
+
+=item C<*_push>
+
+Pushes the given elements onto the end of the array. Like perl's C<push()>.
+
+=item C<*_pop>
+
+Pops one element off the end of the array. Like perl's C<pop()>.
+
+=item C<*_shift>
+
+Shifts one element off the beginning of the array. Like perl's C<shift()>.
+
+=item C<*_unshift>
+
+Unshifts the given elements onto the beginning of the array. Like perl's
+C<unshift()>.
+
+=item C<*_clear>
+
+Deletes all elements of the array.
+
+=item C<*_count>
+
+Returns the number of elements in the array.
+
+=item C<*_set>
+
+Takes a list, treated as pairs of index => value; each given index is
+set to the corresponding value. No return.
+
+=back
+
+=head2 mk_hash_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods as described below, where C<*> denotes the
+slot name.
+
+=over 4
+
+=item C<*>
+
+Called with no arguments returns the hash stored in the slot, as a hash
+in a list context or as a reference in a scalar context.
+
+Called with one simple scalar argument it treats the argument as a key
+and returns the value stored under that key.
+
+Called with one array (list) reference argument, the array elements
+are considered to be be keys of the hash. x returns the list of values
+stored under those keys (also known as a I<hash slice>.)
+
+Called with one hash reference argument, the keys and values of the
+hash are added to the hash.
+
+Called with more than one argument, treats them as a series of key/value
+pairs and adds them to the hash.
+
+=item C<*_keys>
+
+Returns the keys of the hash.
+
+=item C<*_values>
+
+Returns the list of values.
+
+=item C<*_exists>
+
+Takes a single key and returns whether that key exists in the hash.
+
+=item C<*_delete>
+
+Takes a list and deletes each key from the hash.
+
+=item C<*_clear>
+
+Resets the hash to empty.
+
+=back
+
+=head2 mk_class_hash_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods like those generated with
+C<mk_hash_accessors()>, except that it is a class hash, i.e. shared by all
+instances of the class.
+
+=head2 mk_abstract_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods as described below, where C<*> denotes the
+slot name.
+
+=over 4
+
+=item C<*>
+
+When called, it either dies (if L<Error::Hierarchy> is not installed) or
+throws an exception of type L<Error::Hierarchy::Internal::AbstractMethod> (if
+it is installed).
+
+=back
+
+=head2 mk_boolean_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods as described below, where C<*> denotes the
+slot name.
+
+=over 4
+
+=item C<*>
+
+If given a true value - in the Perl sense, i.e. anything except C<undef>, C<0>
+or the empty string - it sets the slot's value to C<1>, otherwise to C<0>. If
+no argument is given, it returns the slot's value.
+
+=item C<set_*>
+
+Sets the slot's value to C<1>.
+
+=item C<clear_*>
+
+Sets the slot's value to C<0>.
+
+=back
+
+=head2 mk_integer_accessors
+
+    MyClass->mk_integer_accessors(qw(some_counter other_index));
+
+Takes a list of accessor base names (simple strings). For each string it
+creates methods as described below, where C<*> denotes the accessor base name.
+
+=over 4
+
+=item C<*>
+
+A basic getter/setter that stores an integer value. Actually, it can store any
+value, but when read back, it returns 0 if the value is undef.
+
+=item C<*_reset>
+
+Resets the slot's value to 0.
+
+=item C<*_inc>
+
+Increments the value, then returns it.
+
+=item C<*_dec>
+
+Decrements the value, then returns it.
+
+=back
+
+Example:
+
+  package Foo;
+
+  use base 'Class::Accessor::Complex';
+  Foo->mk_integer_accessors(qw(score));
+
+Then:
+
+  my $obj = Foo->new(score => 150);
+  my $x = $obj->score_inc;   # is now 151
+  $obj->score_reset;         # is now 0
+
+=head2 mk_set_accessors
+
+Takes a single string or a reference to an array of strings as its argument.
+For each string it creates methods as described below, where C<*> denotes the
+slot name.
+
+A set is different from a list in that it can contain every value only once
+and there is no order on the elements (similar to hash keys, for example).
+
+=over 4
+
+=item C<*>
+
+If called without arguments, it returns the elements in the set. If called
+with arguments, it puts those elements into the set. As such, it is a wrapper
+over C<*_insert()> and C<*_elements()>.
+
+=item C<*_insert>
+
+Inserts the given elements (arguments) into the set. If you pass an array
+reference as the first argument, it is being dereferenced and used instead.
+
+=item C<*_elements>
+
+Returns the elements in the set.
+
+=item C<*_delete>
+
+Removes the given elements from the list. The order in which the elements are
+returned is not guaranteed.
+
+=item C<*_clear>
+
+Empties the set.
+
+=item C<*_contains>
+
+Given an element, it returns whether the set contains the element.
+
+=item C<*_is_empty>
+
+Returns whether or not the set is empty.
+
+=item C<*_size>
+
+Returns the number of elements in the set.
+
+=back
+
+=head2 mk_object_accessor
+
+Takes as arguments, in the given order, the name of the accessor to be created, the class whose objects that accessor accepts as values, and an optional list of methods to forward to the object stored in that accessor.
+
+If the accessor is supplied with an object of an appropriate type, will set
+set the slot to that value. Else, if the slot has no value, then an object is
+created by calling C<new()> on the appropriate class, passing in any supplied
+arguments.
+
+The stored object is then returned.
+
+For example:
+
+    package MyClass;
+    use base 'Class::Accessor::Complex';
+    MyClass
+        ->mk_new
+        ->mk_object_accessor(an_object => 'Some::Foo', qw(do_this do_that));
+
+    package main;
+    use MyClass;
+
+    my $o = MyClass->new;
+    my $t = $o->an_object(text => 'foobar');
+
+    # $t is now the Some::Foo object whose text() accessor is 'foobar'
+
+    # the following call to do_that() is forwarded onto the Some::Foo object
+    # stored in $o->an_object()
+
+    $o->do_that;
+
+=head1 TAGS
+
+If you talk about this module in blogs, on del.icio.us or anywhere else,
+please use the C<classaccessorcomplex> tag.
+
+=head1 BUGS AND LIMITATIONS
+
+No bugs have been reported.
+
+Please report any bugs or feature requests to
+C<bug-class-accessor-complex@rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org>.
+
+=head1 INSTALLATION
+
+See perlmodinstall for information and options on installing Perl modules.
+
+=head1 AVAILABILITY
+
+The latest version of this module is available from the Comprehensive Perl
+Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
+site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
+
+=head1 AUTHOR
+
+Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2007 by Marcel GrE<uuml>nauer
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
