@@ -2,7 +2,7 @@
 
 use warnings;
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 17;
 
 
 package Foo;
@@ -10,6 +10,11 @@ use base 'Class::Accessor::Complex';
 Foo
     ->mk_new
     ->mk_array_accessors(qw(an_array));
+
+
+package Bar;
+use base 'Class::Accessor::Complex';
+Bar->mk_new;
 
 
 package main;
@@ -52,3 +57,17 @@ is_deeply(
     'after pop',
 );
 is($o1->an_array_count, 5, 'count after pop');
+
+my @gone = $o1->an_array_splice(1, 2, 19..25);
+is_deeply(\@gone, [ 7, 8 ], 'spliced elements');
+is_deeply(
+    [ $o1->an_array ],
+    [ 6, 19..25, 9, 10 ],
+    'after splice',
+);
+is($o1->an_array_count, 10, 'count after splice');
+
+is($o1->an_array_index(0), 6, 'index 0');
+is($o1->index_an_array($o1->an_array_count - 1), 10, 'last element');
+is_deeply([ $o1->an_array_index(2, 8, 3) ], [ 20, 9, 21 ], 'indices 2, 5, 3');
+

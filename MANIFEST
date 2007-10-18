@@ -24,4 +24,6 @@ t/04_set.t
 t/05_forward.t
 t/06_array.t
 t/07_hash.t
+t/08_concat.t
+t/09_singleton.t
 t/perlcriticrc

@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 
 use base 'Class::Accessor';
@@ -22,14 +22,113 @@ sub mk_new {
     *{"${class}::${name}"} = sub {
         local $DB::sub = local *__ANON__ = "${class}::${name}"
             if defined &DB::DB && !$Devel::DProf::VERSION;
-        my $class = shift;
-        my $self = ref ($class) ? $class : bless {}, $class;
+        # don't use $class, as that's already defined above
+        my $this_class = shift;
+        my $self = ref ($this_class) ? $this_class : bless {}, $this_class;
         my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH') ? %{ $_[0] } : @_;
 
         $self->$_($args{$_}) for keys %args;
         $self->init(%args) if $self->can('init');
         $self;
     };
+
+    $self;  # for chaining
+}
+
+
+sub mk_singleton {
+    my ($self, $name) = @_;
+    my $class = ref $self || $self;
+    $name = 'new' unless defined $name;
+
+    no strict 'refs';
+
+    my $singleton;
+
+    *{"${class}::${name}"} = sub {
+        local $DB::sub = local *__ANON__ = "${class}::${name}"
+            if defined &DB::DB && !$Devel::DProf::VERSION;
+        return $singleton if defined $singleton;
+
+        # don't use $class, as that's already defined above
+        my $this_class = shift;
+        $singleton = ref ($this_class) ? $this_class : bless {}, $this_class;
+        my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH') ? %{ $_[0] } : @_;
+
+        $singleton->$_($args{$_}) for keys %args;
+        $singleton->init(%args) if $singleton->can('init');
+        $singleton;
+    };
+
+    $self;  # for chaining
+}
+
+
+sub mk_scalar_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            return $_[0]->{$field} if @_ == 1;
+            $_[0]->{$field} = $_[1];
+        };
+
+        *{"${class}::clear_${field}"} =
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = undef;
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_concat_accessors {
+    my ($self, @args) = @_;
+    my $class = ref $self || $self;
+
+    for my $arg (@args) {
+
+        # defaults
+        my $field = $arg;
+        my $join  = '';
+
+        if (ref $arg eq 'ARRAY') {
+            ($field, $join) = @$arg;
+        }
+
+        no strict 'refs';
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, $text) = @_;
+
+            if (defined $text) {
+                if (defined $self->{$field}) {
+                    $self->{$field} = $self->{$field} . $join . $text;
+                } else {
+                    $self->{$field} = $text;
+                }
+            }
+            return $self->{$field};
+        };
+
+        *{"${class}::clear_${field}"} =
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            $_[0]->{$field} = undef;
+        };
+
+    }
 
     $self;  # for chaining
 }
@@ -120,7 +219,7 @@ sub mk_array_accessors {
                 if defined &DB::DB && !$Devel::DProf::VERSION;
             my ($self, @indices) = @_;
             my @result = map { $self->{$field}[$_] } @indices;
-            return $result[0] if @_ == 1;
+            return $result[0] if @indices == 1;
             wantarray ? @result : \@result;
         };
 
@@ -600,7 +699,10 @@ methods it generates.
 
 =head2 mk_new
 
-Takes one simple string argument and creates a constructor. The constructor accepts named arguments (that is, a hash) and will set the hash values on the accessor methods denoted by the keys. For example,
+Takes one simple string argument and creates a constructor of that name, or
+C<new>, if the string is not given. The constructor accepts named arguments -
+that is, a hash - and will set the hash values on the accessor methods denoted
+by the keys. For example,
 
     package MyClass;
     use base 'Class::Accessor::Complex';
@@ -619,11 +721,61 @@ is the same as
 
 The constructor will also call an C<init()> method, if there is one.
 
+=head2 mk_singleton
+
+Takes one simple string argument and creates a singleton constructor of that
+name, or C<new>, if the string is not given.
+
+This constructor only ever returns a single instance of the class. That is,
+after the first call, repeated calls to this constructor return the
+I<same> instance.  Note that the instance is instantiated at the time of
+the first call, not before. Any arguments are treated as for C<mk_new()>.
+Naturally, C<init()> and any initializer methods are called only by the
+first invocation of this method. 
+
+=head2 mk_scalar_accessors
+
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
+
+=over 4
+
+=item C<*>
+
+This method can store a value in a slot and retrieve that value. If it
+receives an argument, it sets the value. Only the first argument is used,
+subsequent arguments are ignored. If called without a value, the method
+retrieves the value from the slot.
+
+=item C<*_clear>, C<clear_*>
+
+Clears the value by setting it to undef.
+
+=back
+
+=head2 mk_concat_accessors
+
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
+
+=over 4
+
+=item C<*>
+
+Like C<mk_scalar_accessors()>, but passing a value to the accessor doesn't
+clear out the original value, but instead concatenates the new value to the
+existing one. Thus, this kind of accessor is only good for plain scalars.
+
+=item C<*_clear>, C<clear_*>
+
+Clears the value by setting it to undef.
+
+=back
+
 =head2 mk_array_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods as described below, where C<*> denotes the
-slot name.
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
 
 =over 4
 
@@ -680,9 +832,8 @@ Takes a list of indices and returns a list of the corresponding values. This is 
 
 =head2 mk_hash_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods as described below, where C<*> denotes the
-slot name.
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
 
 =over 4
 
@@ -728,16 +879,14 @@ Resets the hash to empty.
 
 =head2 mk_class_hash_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods like those generated with
-C<mk_hash_accessors()>, except that it is a class hash, i.e. shared by all
-instances of the class.
+Takes an array of strings as its argument. For each string it creates methods
+like those generated with C<mk_hash_accessors()>, except that it is a class
+hash, i.e. shared by all instances of the class.
 
 =head2 mk_abstract_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods as described below, where C<*> denotes the
-slot name.
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
 
 =over 4
 
@@ -751,9 +900,8 @@ it is installed).
 
 =head2 mk_boolean_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods as described below, where C<*> denotes the
-slot name.
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
 
 =over 4
 
@@ -816,9 +964,8 @@ Then:
 
 =head2 mk_set_accessors
 
-Takes a single string or a reference to an array of strings as its argument.
-For each string it creates methods as described below, where C<*> denotes the
-slot name.
+Takes an array of strings as its argument. For each string it creates methods
+as described below, where C<*> denotes the slot name.
 
 A set is different from a list in that it can contain every value only once
 and there is no order on the elements (similar to hash keys, for example).

@@ -1,14 +1,23 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.04  Do Okt 18 10:09:39 CEST 2007
+        - fixed version requirement of Test::More
+        - added mk_scalar_accessors()
+        - fixed bug in mk_array_accessors()'s *_index() method
+        - added tests to t/06_array.t for *_splice() and *_index()
+        - added mk_concat_accessors and t/08_concat.t
+        - added mk_singleton and t/09_singleton.t
+        - fixed potential variable name clash ($class) in mk_new()
+
 0.03  Mi Okt 17 23:36:30 CEST 2007
-    - mk_array_accessors() now also generates C<*_index>, C<index_*>,
-      C<*_splice> and C<splice_*>.
+        - mk_array_accessors() now also generates C<*_index>, C<index_*>,
+          C<*_splice> and C<splice_*>.
 
 0.02  Mi Okt 17 22:55:15 CEST 2007
-    - as well as generating C<*_foo> methods, it now also generates C<foo_*>
-      methods so you can choose which one to use depending on which one is more
-      readable.
+        - as well as generating C<*_foo> methods, it now also generates
+          C<foo_*> methods so you can choose which one to use depending on
+          which one is more readable.
 
 0.01  Mi Okt 17 11:02:38 CEST 2007
-    - original version
+        - original version
 
