@@ -9,7 +9,10 @@ package Test01;
 use base 'Class::Accessor::Complex';
 Test01
     ->mk_new
-    ->mk_object_accessor(an_object => 'Some::Foo', qw(do_this do_that));
+    ->mk_object_accessors('Some::Foo' => {
+        slot => 'an_object',
+        comp_mthds => [ qw(do_this do_that) ]
+    });
 
 
 package Some::Foo;

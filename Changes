@@ -1,5 +1,14 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.05  Fr Okt 19 22:09:36 CEST 2007
+        - added mk_class_array_accessors()
+        - added t/10_class_array.t
+        - mk_new() and mk_singleton() now accept an argument list instead of
+          just one string, and create a constructor for each string.
+        - mk_object_accessors() is now more flexible, allowing you to define
+          several objects at once, with different composite methods on
+          different slots.
+
 0.04  Do Okt 18 10:09:39 CEST 2007
         - fixed version requirement of Test::More
         - added mk_scalar_accessors()

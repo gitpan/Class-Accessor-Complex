@@ -6,59 +6,69 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 use base 'Class::Accessor';
 
 
 sub mk_new {
-    my ($self, $name) = @_;
+    my ($self, @args) = @_;
     my $class = ref $self || $self;
-    $name = 'new' unless defined $name;
+    @args = ('new') unless @args;
 
     no strict 'refs';
 
-    *{"${class}::${name}"} = sub {
-        local $DB::sub = local *__ANON__ = "${class}::${name}"
-            if defined &DB::DB && !$Devel::DProf::VERSION;
-        # don't use $class, as that's already defined above
-        my $this_class = shift;
-        my $self = ref ($this_class) ? $this_class : bless {}, $this_class;
-        my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH') ? %{ $_[0] } : @_;
+    for my $name (@args) {
+        *{"${class}::${name}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${name}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            # don't use $class, as that's already defined above
+            my $this_class = shift;
+            my $self = ref ($this_class) ? $this_class : bless {}, $this_class;
+            my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH')
+                ? %{ $_[0] }
+                : @_;
 
-        $self->$_($args{$_}) for keys %args;
-        $self->init(%args) if $self->can('init');
-        $self;
-    };
+            $self->$_($args{$_}) for keys %args;
+            $self->init(%args) if $self->can('init');
+            $self;
+        };
+    }
 
     $self;  # for chaining
 }
 
 
 sub mk_singleton {
-    my ($self, $name) = @_;
+    my ($self, @args) = @_;
     my $class = ref $self || $self;
-    $name = 'new' unless defined $name;
+    @args = ('new') unless @args;
 
     no strict 'refs';
 
     my $singleton;
 
-    *{"${class}::${name}"} = sub {
-        local $DB::sub = local *__ANON__ = "${class}::${name}"
-            if defined &DB::DB && !$Devel::DProf::VERSION;
-        return $singleton if defined $singleton;
+    for my $name (@args) {
+        *{"${class}::${name}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${name}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            return $singleton if defined $singleton;
 
-        # don't use $class, as that's already defined above
-        my $this_class = shift;
-        $singleton = ref ($this_class) ? $this_class : bless {}, $this_class;
-        my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH') ? %{ $_[0] } : @_;
+            # don't use $class, as that's already defined above
+            my $this_class = shift;
+            $singleton = ref ($this_class)
+                ? $this_class
+                : bless {}, $this_class;
+            my %args = (scalar(@_ == 1) && ref($_[0]) eq 'HASH')
+                ? %{ $_[0] }
+                : @_;
 
-        $singleton->$_($args{$_}) for keys %args;
-        $singleton->init(%args) if $singleton->can('init');
-        $singleton;
-    };
+            $singleton->$_($args{$_}) for keys %args;
+            $singleton->init(%args) if $singleton->can('init');
+            $singleton;
+        };
+    }
 
     $self;  # for chaining
 }
@@ -235,6 +245,117 @@ sub mk_array_accessors {
                 if @args % 2;
             while (my ($index, $value) = splice @args, 0, 2) {
                 $self->{$field}->[$index] = $value;
+            }
+            return @_ / 2;
+        };
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_class_array_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+        no strict 'refs';
+
+        my @array;
+
+        *{"${class}::${field}"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @list) = @_;
+
+            @array = map { ref $_ eq 'ARRAY' ? @$_ : ($_) } @list
+                if @list;
+
+            wantarray ? @array : \@array
+        };
+
+
+        *{"${class}::push_${field}"} =
+        *{"${class}::${field}_push"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_push"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            push @array => @_;
+        };
+
+
+        *{"${class}::pop_${field}"} =
+        *{"${class}::${field}_pop"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_pop"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            pop @array;
+        };
+
+
+        *{"${class}::unshift_${field}"} =
+        *{"${class}::${field}_unshift"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_unshift"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my $self = shift;
+            unshift @array => @_;
+        };
+
+
+        *{"${class}::shift_${field}"} =
+        *{"${class}::${field}_shift"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_shift"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            shift @array;
+        };
+
+
+        *{"${class}::clear_${field}"} =
+        *{"${class}::${field}_clear"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            @array = ();
+        };
+
+
+        *{"${class}::count_${field}"} =
+        *{"${class}::${field}_count"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_count"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            scalar @array;
+        };
+
+
+        *{"${class}::splice_${field}"} =
+        *{"${class}::${field}_splice"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_splice"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, $offset, $len, @list) = @_;
+            splice(@array, $offset, $len, @list);
+        };
+
+
+        *{"${class}::index_${field}"} =
+        *{"${class}::${field}_index"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_index"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            my ($self, @indices) = @_;
+            my @result = map { $array[$_] } @indices;
+            return $result[0] if @indices == 1;
+            wantarray ? @result : \@result;
+        };
+
+
+        *{"${class}::set_${field}"} =
+        *{"${class}::${field}_set"} = sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}_set"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+
+            my $self = shift;
+            my @args = @_;
+            croak "${class}::${field}_set expects an even number of fields\n"
+                if @args % 2;
+            while (my ($index, $value) = splice @args, 0, 2) {
+                $array[$index] = $value;
             }
             return @_ / 2;
         };
@@ -619,42 +740,64 @@ sub mk_set_accessors {
 }
 
 
-sub mk_object_accessor {
-    my ($self, $field, $type, @composites) = @_;
+sub mk_object_accessors {
+    my ($self, @args) = @_;
     my $class = ref $self || $self;
 
-    no strict 'refs';
+    while (@args) {
+        my $type = shift @args;
+        my $list = shift @args or die "No slot names for $class";
 
-    *{"${class}::${field}"} = sub {
-        local $DB::sub = local *__ANON__ = "${class}::${field}"
-            if defined &DB::DB && !$Devel::DProf::VERSION;
-        my ($self, @args) = @_;
-        if (ref($args[0]) && UNIVERSAL::isa($args[0], $class)) {
-            $self->{$field} = $args[0];
-        } else {
-            defined $self->{$field} or $self->{$field} = $type->new(@args);
+        # Allow a list of hashrefs.
+        my @list = ( ref($list) eq 'ARRAY' ) ? @$list : ($list);
+
+        for my $obj_def (@list) {
+
+            my ($name, @composites);
+            if ( ! ref $obj_def ) {
+                $name = $obj_def;
+            } else {
+                $name = $obj_def->{slot};
+                my $composites = $obj_def->{comp_mthds};
+                @composites = ref($composites) eq 'ARRAY' ? @$composites
+                    : defined $composites ? ($composites) : ();
+            }
+
+            for my $meth (@composites) {
+                no strict 'refs';
+                *{"${class}::${meth}"} = sub {
+                    local $DB::sub = local *__ANON__ = "${class}::{$meth}"
+                        if defined &DB::DB && !$Devel::DProf::VERSION;
+                    my ($self, @args) = @_;
+                    $self->$name()->$meth(@args);
+                };
+            }
+
+            no strict 'refs';
+
+            *{"${class}::${name}"} = sub {
+                local $DB::sub = local *__ANON__ = "${class}::${name}"
+                    if defined &DB::DB && !$Devel::DProf::VERSION;
+                my ($self, @args) = @_;
+                if (ref($args[0]) && UNIVERSAL::isa($args[0], $class)) {
+                    $self->{$name} = $args[0];
+                } else {
+                    defined $self->{$name} or
+                        $self->{$name} = $type->new(@args);
+                }
+                $self->{$name};
+            };
+
+
+            *{"${class}::clear_${name}"} =
+            *{"${class}::${name}_clear"} = sub {
+                local $DB::sub = local *__ANON__ = "${class}::${name}_clear"
+                    if defined &DB::DB && !$Devel::DProf::VERSION;
+                delete $_[0]->{$name};
+            };
         }
-        $self->{$field};
-    };
-
-
-    *{"${class}::clear_${field}"} =
-    *{"${class}::${field}_clear"} = sub {
-        local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
-            if defined &DB::DB && !$Devel::DProf::VERSION;
-        delete $_[0]->{$field};
-    };
-
-
-    for my $composite (@composites) {
-        *{"${class}::${composite}"} = sub {
-            local $DB::sub = local *__ANON__ = "${class}::${composite}"
-                if defined &DB::DB && !$Devel::DProf::VERSION;
-            my ($self, @args) = @_;
-            $self->$field()->$composite(@args);
-        };
-
     }
+
 
     $self;  # for chaining
 }
@@ -679,7 +822,11 @@ Class::Accessor::Complex - arrays, hashes, booleans, integers, sets and more
       ->mk_integer_accessors(qw(an_integer)),
       ->mk_class_hash_accessors(qw(a_hash)),
       ->mk_set_accessors(qw(testset)),
-      ->mk_object_accessor(an_object => 'Some::Foo', qw(do_this do_that));
+      ->mk_object_accessors('Some::Foo' => {
+          slot => 'an_object',
+          comp_mthds => [ qw(do_this do_that) ]
+      });
+
 
 =head1 DESCRIPTION
 
@@ -699,10 +846,10 @@ methods it generates.
 
 =head2 mk_new
 
-Takes one simple string argument and creates a constructor of that name, or
-C<new>, if the string is not given. The constructor accepts named arguments -
-that is, a hash - and will set the hash values on the accessor methods denoted
-by the keys. For example,
+Takes an array of strings as its argument. If no argument is given, it uses
+C<new> as the default. For each string it creates a constructor of that name.
+The constructor accepts named arguments - that is, a hash - and will set the
+hash values on the accessor methods denoted by the keys. For example,
 
     package MyClass;
     use base 'Class::Accessor::Complex';
@@ -723,8 +870,8 @@ The constructor will also call an C<init()> method, if there is one.
 
 =head2 mk_singleton
 
-Takes one simple string argument and creates a singleton constructor of that
-name, or C<new>, if the string is not given.
+Takes an array of strings as its argument. If no argument is given, it uses
+C<new> as the default. For each string it creates a constructor of that name.
 
 This constructor only ever returns a single instance of the class. That is,
 after the first call, repeated calls to this constructor return the
@@ -829,6 +976,12 @@ set to the corresponding value. No return.
 Takes a list of indices and returns a list of the corresponding values. This is like an array slice.
 
 =back
+
+=head2 mk_class_array_accessors
+
+Takes an array of strings as its argument. For each string it creates methods
+like those generated with C<mk_array_accessors()>, except that it is a class
+hash, i.e. shared by all instances of the class.
 
 =head2 mk_hash_accessors
 
@@ -1010,11 +1163,89 @@ Returns the number of elements in the set.
 
 =back
 
-=head2 mk_object_accessor
+=head2 mk_object_accessors
 
-Takes as arguments, in the given order, the name of the accessor to be created, the class whose objects that accessor accepts as values, and an optional list of methods to forward to the object stored in that accessor.
+    MyClass->mk_object_accessors(
+        'Foo' => 'phooey',
+        'Bar' => [ qw(bar1 bar2 bar3) ],
+        'Baz' => {
+            slot => 'foo',
+            comp_mthds => [ qw(bar baz) ]
+        },
+        'Fob' => [
+            {
+                slot       => 'dog',
+                comp_mthds => 'bark',
+            },
+            {
+                slot       => 'cat',
+                comp_mthds => 'miaow',
+            },
+        ],
+    );
 
-Creates methods as described below, where C<*> denotes the slot name.
+
+The main argument should be a reference to an array. The array should contain
+pairs of class => sub-argument pairs. The sub-arguments parsed thus:
+
+=over 4
+
+=item Hash Reference
+
+See C<Baz> above. The hash should contain the following keys:
+
+=over 4
+
+=item slot
+
+The name of the instance attribute (slot).
+
+=item comp_mthds
+
+A string or array reference, naming the methods that will be forwarded
+directly to the object in the slot.
+
+=back
+
+=item Array Reference
+
+As for C<String>, for each member of the array. Also works if each member is a
+hash reference (see C<Fob> above).
+
+=item String
+
+The name of the instance attribute (slot).
+
+=back
+
+For each slot C<x>, with forwarding methods C<y> and C<z>, the following
+methods are created:
+
+=over 4
+
+=item x
+
+A get/set method, see C<*> below.
+
+=item y
+
+Forwarded onto the object in slot C<x>, which is auto-created via C<new()> if
+necessary. The C<new()>, if called, is called without arguments.
+
+=item z
+
+As for C<y>.
+
+=back
+
+So, using the example above, a method, C<foo()>, is created, which can get and
+set the value of those objects in slot C<foo>, which will generally contain an
+object of class Baz. Two additional methods are created named C<bar()> and
+C<baz()> which result in a call to the C<bar()> and C<baz()> methods on the
+Baz object stored in slot C<foo>.
+
+Apart from the forwarding methods described above, C<mk_object_accessors()>
+creates methods as described below, where C<*> denotes the slot name.
 
 =over 4
 
@@ -1026,27 +1257,6 @@ created by calling C<new()> on the appropriate class, passing in any supplied
 arguments.
 
 The stored object is then returned.
-
-For example:
-
-    package MyClass;
-    use base 'Class::Accessor::Complex';
-    MyClass
-        ->mk_new
-        ->mk_object_accessor(an_object => 'Some::Foo', qw(do_this do_that));
-
-    package main;
-    use MyClass;
-
-    my $o = MyClass->new;
-    my $t = $o->an_object(text => 'foobar');
-
-    # $t is now the Some::Foo object whose text() accessor is 'foobar'
-
-    # the following call to do_that() is forwarded onto the Some::Foo object
-    # stored in $o->an_object()
-
-    $o->do_that;
 
 =item C<*_clear>, C<clear_*>
 
