@@ -7,7 +7,7 @@ use Test::More tests => 2;
 
 package Test01;
 use base 'Class::Accessor::Complex';
-Test01
+__PACKAGE__
     ->mk_new
     ->mk_abstract_accessors(qw(not_there));
 

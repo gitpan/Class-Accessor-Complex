@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 
 use base 'Class::Accessor';
@@ -814,7 +814,7 @@ Class::Accessor::Complex - arrays, hashes, booleans, integers, sets and more
 
   package MyClass;
   use base 'Class::Accessor::Complex';
-  MyClass
+  __PACKAGE__
       ->mk_new
       ->mk_array_accessors(qw(an_array)),
       ->mk_hash_accessors(qw(a_hash)),
@@ -852,7 +852,7 @@ hash values on the accessor methods denoted by the keys. For example,
 
     package MyClass;
     use base 'Class::Accessor::Complex';
-    MyClass->mk_new;
+    __PACKAGE__->mk_new;
 
     package main;
     use MyClass;
@@ -1075,7 +1075,7 @@ Sets the slot's value to C<0>.
 
 =head2 mk_integer_accessors
 
-    MyClass->mk_integer_accessors(qw(some_counter other_index));
+    __PACKAGE__->mk_integer_accessors(qw(some_counter other_index));
 
 Takes a list of accessor base names (simple strings). For each string it
 creates methods as described below, where C<*> denotes the accessor base name.
@@ -1106,7 +1106,7 @@ Example:
   package Foo;
 
   use base 'Class::Accessor::Complex';
-  Foo->mk_integer_accessors(qw(score));
+  __PACKAGE__->mk_integer_accessors(qw(score));
 
 Then:
 

@@ -7,7 +7,7 @@ use Test::More tests => 4;
 
 package Test01;
 use base 'Class::Accessor::Complex';
-Test01
+__PACKAGE__
     ->mk_new
     ->mk_object_accessors('Some::Foo' => {
         slot => 'an_object',
@@ -17,7 +17,7 @@ Test01
 
 package Some::Foo;
 use base 'Class::Accessor::Complex';
-Some::Foo
+__PACKAGE__
     ->mk_new
     ->mk_accessors(qw(text));
 

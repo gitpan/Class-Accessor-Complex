@@ -7,7 +7,7 @@ use Test::More tests => 14;
 
 package Foo;
 use base 'Class::Accessor::Complex';
-Foo
+__PACKAGE__
     ->mk_new
     ->mk_hash_accessors(qw(a_hash));
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.07  Sa Okt 20 22:16:22 CEST 2007
+        - simplified accessor declaration
+
 0.06  Sa Okt 20 10:03:26 CEST 2007
         - hopefully fixed the '"my" variable $class masks earlier declaration
           in same scope' bug

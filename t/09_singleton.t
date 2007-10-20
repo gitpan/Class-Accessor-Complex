@@ -7,7 +7,7 @@ use Test::More tests => 6;
 
 package Test01;
 use base 'Class::Accessor::Complex';
-Test01
+__PACKAGE__
     ->mk_singleton
     ->mk_scalar_accessors(qw(name));
 

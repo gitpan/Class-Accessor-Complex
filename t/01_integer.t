@@ -7,7 +7,7 @@ use Test::More tests => 8;
 
 package Test01;
 use base 'Class::Accessor::Complex';
-Test01
+__PACKAGE__
     ->mk_new
     ->mk_integer_accessors(qw(an_integer));
 

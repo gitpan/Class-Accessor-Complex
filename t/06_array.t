@@ -7,14 +7,14 @@ use Test::More tests => 17;
 
 package Foo;
 use base 'Class::Accessor::Complex';
-Foo
+__PACKAGE__
     ->mk_new
     ->mk_array_accessors(qw(an_array));
 
 
 package Bar;
 use base 'Class::Accessor::Complex';
-Bar->mk_new;
+__PACKAGE__->mk_new;
 
 
 package main;

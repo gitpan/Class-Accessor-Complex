@@ -7,7 +7,7 @@ use Test::More tests => 21;
 
 package Foo;
 use base 'Class::Accessor::Complex';
-Foo
+__PACKAGE__
     ->mk_new
     ->mk_class_array_accessors(qw(an_array));
 

@@ -7,7 +7,7 @@ use Test::More tests => 15;
 
 package Foo;
 use base 'Class::Accessor::Complex';
-Foo
+__PACKAGE__
     ->mk_new
     ->mk_set_accessors(qw(testset));
 
