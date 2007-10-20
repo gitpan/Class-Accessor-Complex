@@ -1,5 +1,9 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.06  Sa Okt 20 10:03:26 CEST 2007
+        - hopefully fixed the '"my" variable $class masks earlier declaration
+          in same scope' bug
+
 0.05  Fr Okt 19 22:09:36 CEST 2007
         - added mk_class_array_accessors()
         - added t/10_class_array.t

@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 
 use base 'Class::Accessor';
@@ -465,7 +465,7 @@ sub mk_class_hash_accessors {
         *{"${class}::${field}"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
-            my ($class, @list) = @_;
+            my ($self, @list) = @_;
             if (scalar @list == 1) {
                 my ($key) = @list;
 
@@ -522,8 +522,7 @@ sub mk_class_hash_accessors {
         *{"${class}::${field}_exists"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_exists"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
-            my ($class, $key) = @_;
-            exists $hash{$key};
+            exists $hash{$_[1]};
         };
 
 
@@ -531,7 +530,7 @@ sub mk_class_hash_accessors {
         *{"${class}::${field}_delete"} = sub {
             local $DB::sub = local *__ANON__ = "${class}::${field}_delete"
                 if defined &DB::DB && !$Devel::DProf::VERSION;
-            my ($class, @keys) = @_;
+            my ($self, @keys) = @_;
             delete @hash{@keys};
         };
 
