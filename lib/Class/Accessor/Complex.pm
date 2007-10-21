@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 
 use base 'Class::Accessor';
@@ -778,7 +778,7 @@ sub mk_object_accessors {
                 local $DB::sub = local *__ANON__ = "${class}::${name}"
                     if defined &DB::DB && !$Devel::DProf::VERSION;
                 my ($self, @args) = @_;
-                if (ref($args[0]) && UNIVERSAL::isa($args[0], $class)) {
+                if (ref($args[0]) && UNIVERSAL::isa($args[0], $type)) {
                     $self->{$name} = $args[0];
                 } else {
                     defined $self->{$name} or
@@ -1238,7 +1238,7 @@ The name of the instance attribute (slot).
 
 =back
 
-For each slot C<x>, with forwarding methods C<y> and C<z>, the following
+For each slot C<x>, with forwarding methods C<y()> and C<z()>, the following
 methods are created:
 
 =over 4
