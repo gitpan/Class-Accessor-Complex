@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 use base 'Class::Accessor';
@@ -802,6 +802,27 @@ sub mk_object_accessors {
 }
 
 
+sub mk_forward_accessors {
+    my ($self, %args) = @_;
+    my $class = ref $self || $self;
+
+    while (my ($slot, $methods) = each %args) {
+        my @methods = ref $methods eq 'ARRAY' ? @$methods : ($methods);
+        for my $field (@methods) {
+            no strict 'refs';
+            *{"${class}::${field}"} = sub {
+                local $DB::sub = local *__ANON__ = "${class}::${field}"
+                    if defined &DB::DB && !$Devel::DProf::VERSION;
+                my ($self, @args) = @_;
+                $self->$slot()->$field(@args);
+            };
+        }
+    }
+
+    $self;  # for chaining
+}
+
+
 1;
 
 __END__
@@ -1262,6 +1283,21 @@ The stored object is then returned.
 Removes the object from the accessor.
 
 =back
+
+=head2 mk_forward_accessors
+
+    __PACKAGE__->mk_forward_accessors(
+        comp1 => 'method1',
+        comp2 => [ qw(method2 method3) ],
+    );
+
+Takes a hash of mappings as its arguments. Each hash value is expected to be
+either a string or an array reference. For each hash value an accessor is
+created and forwarded to the accessor denoted by its associated hash key.
+
+In the example above, a call to C<method1()> will be forwarded onto
+C<comp1()>, and calls to C<method2()> and C<method3()> will be forwarded onto
+C<comp2()>.
 
 =head1 TAGS
 
