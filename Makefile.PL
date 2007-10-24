@@ -4,6 +4,7 @@ all_from 'lib/Class/Accessor/Complex.pm';
 perl_version '5.006';
 
 requires 'Class::Accessor';
+requires 'Class::Accessor::Installer';
 requires 'Data::Miscellany';
 
 build_requires 'Test::More' => '0.70';

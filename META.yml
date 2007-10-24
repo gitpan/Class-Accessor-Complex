@@ -18,6 +18,7 @@ no_index:
     - t
 requires: 
   Class::Accessor: 0
+  Class::Accessor::Installer: 0
   Data::Miscellany: 0
   perl: 5.6.0
-version: 0.09
+version: 0.10
