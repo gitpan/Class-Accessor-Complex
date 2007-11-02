@@ -6,7 +6,7 @@ use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 
 use base qw(Class::Accessor Class::Accessor::Installer);
@@ -88,6 +88,35 @@ sub mk_scalar_accessors {
                 local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
                     if defined &DB::DB && !$Devel::DProf::VERSION;
                 $_[0]->{$field} = undef;
+            }
+        );
+    }
+
+    $self;  # for chaining
+}
+
+
+sub mk_class_scalar_accessors {
+    my ($self, @fields) = @_;
+    my $class = ref $self || $self;
+
+    for my $field (@fields) {
+
+        my $scalar;
+
+        $self->install_accessor(name => $field, code => sub {
+            local $DB::sub = local *__ANON__ = "${class}::${field}"
+                if defined &DB::DB && !$Devel::DProf::VERSION;
+            return $scalar if @_ == 1;
+            $scalar = $_[1];
+        });
+
+        $self->install_accessor(
+            name => [ "clear_${field}", "${field}_clear" ],
+            code => sub {
+                local $DB::sub = local *__ANON__ = "${class}::${field}_clear"
+                    if defined &DB::DB && !$Devel::DProf::VERSION;
+                $scalar = undef;
             }
         );
     }
@@ -985,6 +1014,12 @@ retrieves the value from the slot.
 Clears the value by setting it to undef.
 
 =back
+
+=head2 mk_class_scalar_accessors
+
+Takes an array of strings as its argument. For each string it creates methods
+like those generated with C<mk_scalar_accessors()>, except that it is a class
+scalar, i.e. shared by all instances of the class.
 
 =head2 mk_concat_accessors
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Class::Accessor::Complex
 
+0.11  Fr Nov  2 16:26:48 CET 2007
+        - added mk_class_scalar_accessors() and its tests
+
 0.10  Di Okt 23 23:35:42 CEST 2007
         - now uses Class::Accessor::Installer
 
