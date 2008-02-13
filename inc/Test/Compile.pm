@@ -4,12 +4,11 @@ package Test::Compile;
 use warnings;
 use strict;
 use Test::Builder;
-use Devel::CheckOS qw(os_is os_isnt);
 use File::Spec;
 use UNIVERSAL::require;
 
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 
 my $Test = Test::Builder->new;
@@ -67,12 +66,21 @@ sub pl_file_ok {
     my $file = shift;
     my $name = @_ ? shift : "Compile test for $file";
 
-    # Exclude VMS because $^X doesn't work
-    # In general perl is a symlink to perlx.y.z
-    # but VMS stores symlinks differently...
-    unless (os_is('OSFeatures::POSIXShellRedirection') and os_isnt('VMS')) {
-        $Test->skip('Test not compatible with your OS');
-        return;
+    # don't "use Devel::CheckOS" because Test::Compile is included by
+    # Module::Install::StandardTests, and we don't want to have to ship
+    # Devel::CheckOS with M::I::T as well.
+
+    if (Devel::CheckOS->require) {
+
+        # Exclude VMS because $^X doesn't work. In general perl is a symlink to
+        # perlx.y.z but VMS stores symlinks differently...
+
+        unless (Devel::CheckOS::os_is('OSFeatures::POSIXShellRedirection') and
+                Devel::CheckOS::os_isnt('VMS')) {
+
+            $Test->skip('Test not compatible with your OS');
+            return;
+        }
     }
 
     unless (-f $file) {
@@ -204,5 +212,5 @@ __END__
 
 {% USE p = PodGenerated %}
 
-#line 363
+#line 371
 

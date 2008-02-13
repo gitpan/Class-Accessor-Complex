@@ -4,6 +4,14 @@ global:
 releases:
   - author: 'Marcel Gruenauer <marcel@cpan.org>'
     changes:
+      - set the version to 0.13
+      - Class::Accessor::Complex now uses List::MoreUtil's uniq() to filter out duplicate method names
+      - 't/01_integer.t: added test to check that no (redefined) warnings occurred'
+    date: 2008-02-13T22:38:17Z
+    tags: []
+    version: 0.13
+  - author: 'Marcel Gruenauer <marcel@cpan.org>'
+    changes:
       - Converted Changes file to YAML style
       - '.shipit: added Twitter step'
       - 'Makefile.PL: added auto_install() and process_templates()'

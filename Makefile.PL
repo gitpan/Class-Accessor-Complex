@@ -8,6 +8,8 @@ perl_version '5.006';
 requires 'Class::Accessor';
 requires 'Class::Accessor::Installer';
 requires 'Data::Miscellany';
+requires 'List::MoreUtils';
+requires 'Test::NoWarnings';
 
 build_requires 'Test::More' => '0.70';
 

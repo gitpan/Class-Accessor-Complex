@@ -4,9 +4,10 @@ use warnings;
 use strict;
 use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
+use List::MoreUtils 'uniq';
 
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 
 use base qw(Class::Accessor Class::Accessor::Installer);
@@ -124,7 +125,7 @@ EODOC
             ],
         );
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -172,7 +173,7 @@ EODOC
             ],
         );
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -234,7 +235,7 @@ EODOC
             ],
         );
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -289,7 +290,7 @@ EODOC
         );
 
 
-        for my $name ("push_${field}", "${field}_push") {
+        for my $name (uniq "push_${field}", "${field}_push") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -306,7 +307,7 @@ EODOC
         }
 
 
-        for my $name ("pop_${field}", "${field}_pop") {
+        for my $name (uniq "pop_${field}", "${field}_pop") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -322,7 +323,7 @@ EODOC
         }
 
 
-        for my $name ("unshift_${field}", "${field}_unshift") {
+        for my $name (uniq "unshift_${field}", "${field}_unshift") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -339,7 +340,7 @@ EODOC
         }
 
 
-        for my $name ("shift_${field}", "${field}_shift") {
+        for my $name (uniq "shift_${field}", "${field}_shift") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -355,7 +356,7 @@ EODOC
         }
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -371,7 +372,7 @@ EODOC
         }
 
 
-        for my $name ("count_${field}", "${field}_count") {
+        for my $name (uniq "count_${field}", "${field}_count") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -387,7 +388,7 @@ EODOC
         }
 
 
-        for my $name ("splice_${field}", "${field}_splice") {
+        for my $name (uniq "splice_${field}", "${field}_splice") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -420,7 +421,7 @@ EODOC
         }
 
 
-        for my $name ("index_${field}", "${field}_index") {
+        for my $name (uniq "index_${field}", "${field}_index") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -446,7 +447,7 @@ EODOC
         }
 
 
-        for my $name ("set_${field}", "${field}_set") {
+        for my $name (uniq "set_${field}", "${field}_set") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -514,7 +515,7 @@ EODOC
         );
 
 
-        for my $name ("push_${field}", "${field}_push") {
+        for my $name (uniq "push_${field}", "${field}_push") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -532,7 +533,7 @@ EODOC
         }
 
 
-        for my $name ("pop_${field}", "${field}_pop") {
+        for my $name (uniq "pop_${field}", "${field}_pop") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -549,7 +550,7 @@ EODOC
         }
 
 
-        for my $name ("unshift_${field}", "${field}_unshift") {
+        for my $name (uniq "unshift_${field}", "${field}_unshift") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -567,7 +568,7 @@ EODOC
         }
 
 
-        for my $name ("shift_${field}", "${field}_shift") {
+        for my $name (uniq "shift_${field}", "${field}_shift") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -584,7 +585,7 @@ EODOC
         }
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -601,7 +602,7 @@ EODOC
         }
 
 
-        for my $name ("count_${field}", "${field}_count") {
+        for my $name (uniq "count_${field}", "${field}_count") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -618,7 +619,7 @@ EODOC
         }
 
 
-        for my $name ("splice_${field}", "${field}_splice") {
+        for my $name (uniq "splice_${field}", "${field}_splice") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -654,7 +655,7 @@ EODOC
         }
 
 
-        for my $name ("index_${field}", "${field}_index") {
+        for my $name (uniq "index_${field}", "${field}_index") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -683,7 +684,7 @@ EODOC
         }
 
 
-        for my $name ("set_${field}", "${field}_set") {
+        for my $name (uniq "set_${field}", "${field}_set") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -785,7 +786,7 @@ EODOC
         );
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -802,7 +803,7 @@ EODOC
         }
 
 
-        for my $name ("keys_${field}", "${field}_keys") {
+        for my $name (uniq "keys_${field}", "${field}_keys") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -818,7 +819,7 @@ EODOC
         }
 
 
-        for my $name ("values_${field}", "${field}_values") {
+        for my $name (uniq "values_${field}", "${field}_values") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -834,7 +835,7 @@ EODOC
         }
 
 
-        for my $name ("exists_${field}", "${field}_exists") {
+        for my $name (uniq "exists_${field}", "${field}_exists") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -852,7 +853,7 @@ EODOC
         }
 
 
-        for my $name ("delete_${field}", "${field}_delete") {
+        for my $name (uniq "delete_${field}", "${field}_delete") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -946,7 +947,7 @@ EODOC
         );
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -963,7 +964,7 @@ EODOC
         }
 
 
-        for my $name ("keys_${field}", "${field}_keys") {
+        for my $name (uniq "keys_${field}", "${field}_keys") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -980,7 +981,7 @@ EODOC
         }
 
 
-        for my $name ("values_${field}", "${field}_values") {
+        for my $name (uniq "values_${field}", "${field}_values") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -997,7 +998,7 @@ EODOC
         }
 
 
-        for my $name ("exists_${field}", "${field}_exists") {
+        for my $name (uniq "exists_${field}", "${field}_exists") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1015,7 +1016,7 @@ EODOC
         }
 
 
-        for my $name ("delete_${field}", "${field}_delete") {
+        for my $name (uniq "delete_${field}", "${field}_delete") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1091,7 +1092,7 @@ EODOC
         );
 
 
-        for my $name ("set_${field}", "${field}_set") {
+        for my $name (uniq "set_${field}", "${field}_set") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1107,7 +1108,7 @@ EODOC
         }
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1153,7 +1154,7 @@ EODOC
         );
 
 
-        for my $name ("reset_${field}", "${field}_reset") {
+        for my $name (uniq "reset_${field}", "${field}_reset") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1169,7 +1170,7 @@ EODOC
         }
 
 
-        for my $name ("inc_${field}", "${field}_inc") {
+        for my $name (uniq "inc_${field}", "${field}_inc") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1185,7 +1186,7 @@ EODOC
         }
 
 
-        for my $name ("dec_${field}", "${field}_dec") {
+        for my $name (uniq "dec_${field}", "${field}_dec") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1240,7 +1241,7 @@ EODOC
         );
 
 
-        for my $name ("insert_${field}", $insert_method) {
+        for my $name (uniq "insert_${field}", $insert_method) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1259,7 +1260,7 @@ EODOC
         }
 
 
-        for my $name ("elements_${field}", $elements_method) {
+        for my $name (uniq "elements_${field}", $elements_method) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1277,7 +1278,7 @@ EODOC
         }
 
 
-        for my $name ("delete_${field}", "${field}_delete") {
+        for my $name (uniq "delete_${field}", "${field}_delete") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1294,7 +1295,7 @@ EODOC
         }
 
 
-        for my $name ("clear_${field}", "${field}_clear") {
+        for my $name (uniq "clear_${field}", "${field}_clear") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1310,7 +1311,7 @@ EODOC
         }
 
 
-        for my $name ("contains_${field}", "${field}_contains") {
+        for my $name (uniq "contains_${field}", "${field}_contains") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1329,7 +1330,7 @@ EODOC
         }
 
 
-        for my $name ("is_empty_${field}", "${field}_is_empty") {
+        for my $name (uniq "is_empty_${field}", "${field}_is_empty") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1346,7 +1347,7 @@ EODOC
         }
 
 
-        for my $name ("size_${field}", "${field}_size") {
+        for my $name (uniq "size_${field}", "${field}_size") {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1991,7 +1992,7 @@ please use the C<classaccessorcomplex> tag.
 
 =head1 VERSION 
                    
-This document describes version 0.12 of L<Class::Accessor::Complex>.
+This document describes version 0.13 of L<Class::Accessor::Complex>.
 
 =head1 BUGS AND LIMITATIONS
 

@@ -2,20 +2,24 @@
 
 use warnings;
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 9;
+use Test::NoWarnings;
 
 
 package Test01;
 use base 'Class::Accessor::Complex';
 __PACKAGE__
     ->mk_new
-    ->mk_integer_accessors(qw(an_integer));
+    ->mk_integer_accessors(qw(an_integer reset));
 
+# Gen an integer accessor called 'reset' because mk_integer_accessors() also
+# generates reset_* and *_reset, so check there are no 'redefined' warnings.
 
 package main;
 
 can_ok('Test01', qw(
     an_integer an_integer_reset an_integer_inc an_integer_dec
+    reset reset_reset reset_inc reset_dec
 ));
 
 my $test01 = Test01->new;
