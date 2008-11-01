@@ -7,7 +7,7 @@ use Data::Miscellany 'flatten';
 use List::MoreUtils 'uniq';
 
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 
 use base qw(Class::Accessor Class::Accessor::Installer);
@@ -815,6 +815,22 @@ EODOC
 Returns a list of all hash keys in no particular order.
 EODOC
                 example => "my \@keys = \$obj->$name;",
+            );
+        }
+
+
+        for my $name (uniq "count_${field}", "${field}_count") {
+            $self->install_accessor(
+                name => $name,
+                code => sub {
+                    local $DB::sub = local *__ANON__ = "${class}::${name}"
+                        if defined &DB::DB && !$Devel::DProf::VERSION;
+                    scalar keys %{$_[0]->{$field}};
+                },
+                purpose => <<'EODOC',
+Returns the number of keys in the hash.
+EODOC
+                example => "my \$count = \$obj->$name;",
             );
         }
 
@@ -1718,6 +1734,10 @@ pairs and adds them to the hash.
 
 Returns the keys of the hash.
 
+=item C<*_count>, C<count_*>
+
+Returns the number of keys in the hash.
+
 =item C<*_values>, C<values_*>
 
 Returns the list of values.
@@ -1985,21 +2005,11 @@ In the example above, a call to C<method1()> will be forwarded onto
 C<comp1()>, and calls to C<method2()> and C<method3()> will be forwarded onto
 C<comp2()>.
 
-=head1 TAGS
-
-If you talk about this module in blogs, on del.icio.us or anywhere else,
-please use the C<classaccessorcomplex> tag.
-
-=head1 VERSION 
-                   
-This document describes version 0.13 of L<Class::Accessor::Complex>.
-
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported.
 
-Please report any bugs or feature requests to
-C<<bug-class-accessor-complex@rt.cpan.org>>, or through the web interface at
+Please report any bugs or feature requests through the web interface at
 L<http://rt.cpan.org>.
 
 =head1 INSTALLATION
@@ -2012,13 +2022,15 @@ The latest version of this module is available from the Comprehensive Perl
 Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
 site near you. Or see <http://www.perl.com/CPAN/authors/id/M/MA/MARCEL/>.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
 
+Florian Helmberger, C<< <florian@cpan.org> >>
+
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2008 by Marcel GrE<uuml>nauer
+Copyright 2007-2008 by the authors.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

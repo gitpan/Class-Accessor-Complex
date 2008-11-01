@@ -2,7 +2,7 @@
 
 use warnings;
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 17;
 
 
 package Foo;
@@ -15,7 +15,7 @@ __PACKAGE__
 package main;
 
 can_ok('Foo', qw(
-    a_hash a_hash_clear a_hash_keys a_hash_values a_hash_exists a_hash_delete
+    a_hash a_hash_clear a_hash_keys a_hash_values a_hash_exists a_hash_delete a_hash_count
 ));
 
 
@@ -26,6 +26,9 @@ is_deeply(
 );
 
 my $o1 = Foo->new;
+
+is($o1->a_hash_count, 0, 'count returns 0 after creation');
+
 $o1->a_hash(a => 1, b => 2);
 my %o1 = $o1->a_hash;
 is_deeply(\%o1, { a => 1, b => 2 }, 'return hash in list context');
@@ -80,6 +83,7 @@ is_deeply(
     'return hash slice'
 );
 
+is($o1->a_hash_count, 3, 'count hash keys');
 
 $o1->a_hash_clear;
 
@@ -88,3 +92,4 @@ is_deeply(
     [],
     'clear'
 );
+is($o1->a_hash_count, 0, 'count returns 0 after clear');

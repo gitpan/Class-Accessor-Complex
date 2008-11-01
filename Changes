@@ -1,113 +1,88 @@
----
-global:
-  name: Class-Accessor-Complex
-releases:
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - set the version to 0.13
-      - Class::Accessor::Complex now uses List::MoreUtil's uniq() to filter out duplicate method names
-      - 't/01_integer.t: added test to check that no (redefined) warnings occurred'
-    date: 2008-02-13T22:38:17Z
-    tags: []
-    version: 0.13
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - Converted Changes file to YAML style
-      - '.shipit: added Twitter step'
-      - 'Makefile.PL: added auto_install() and process_templates()'
-      - 'lib/*: converted to template'
-      - updated MANIFEST
-      - improved documentation generated for mk_new()
-      - added documentation generated for mk_singleton()
-      - added documentation generated for mk_class_scalar_accessors()
-      - added documentation generated for mk_concat_accessors()
-      - added documentation generated for mk_class_array_accessors()
-      - added documentation generated for mk_hash_accessors()
-      - added documentation generated for mk_class_hash_accessors()
-      - added documentation generated for mk_boolean_accessors()
-      - added documentation generated for mk_integer_accessors()
-      - added documentation generated for mk_set_accessors()
-      - added documentation generated for mk_object_accessors()
-      - added documentation generated for mk_forward_accessors()
-      - slightly improved generated documentation
-      - documented that it generates documentation
-      - updated t/perlcriticrc
-    date: 2007-11-21T18:20:58Z
-    tags:
-      - NEWFEATURE
-    version: 0.12
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - added mk_class_scalar_accessors() and its tests
-    date: 2007-11-02T16:26:48+01:00
-    tags: []
-    version: 0.11
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - now uses Class::Accessor::Installer
-    date: 2007-10-23T23:35:42+02:00
-    tags: []
-    version: 0.10
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - fixed a bug in mk_object_accessors() where we used $class instead of $type
-    date: 2007-10-21T19:58:17+02:00
-    tags: []
-    version: 0.09
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - added mk_forward_accessors()
-    date: 2007-10-21T10:18:11+02:00
-    tags: []
-    version: 0.08
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - simplified accessor declaration
-    date: 2007-10-20T22:16:22+02:00
-    tags: []
-    version: 0.07
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - hopefully fixed the '"my" variable $class masks earlier declaration in same scope' bug
-    date: 2007-10-20T10:03:26+02:00
-    tags: []
-    version: 0.06
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - added mk_class_array_accessors()
-      - added t/10_class_array.t
-      - 'mk_new() and mk_singleton() now accept an argument list instead of just one string, and create a constructor for each string.'
-      - 'mk_object_accessors() is now more flexible, allowing you to define several objects at once, with different composite methods on different slots.'
-    date: 2007-10-19T22:09:36+02:00
-    tags: []
-    version: 0.05
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - fixed version requirement of Test::More
-      - added mk_scalar_accessors()
-      - fixed bug in mk_array_accessors()'s *_index() method
-      - added tests to t/06_array.t for *_splice() and *_index()
-      - added mk_concat_accessors and t/08_concat.t
-      - added mk_singleton and t/09_singleton.t
-      - fixed potential variable name clash ($class) in mk_new()
-    date: 2007-10-18T10:09:39+02:00
-    tags: []
-    version: 0.04
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - 'mk_array_accessors() now also generates C<*_index>, C<index_*>, C<*_splice> and C<splice_*>.'
-    date: 2007-10-17T23:36:30+02:00
-    tags: []
-    version: 0.03
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - 'as well as generating C<*_foo> methods, it now also generates C<foo_*> methods so you can choose which one to use depending on which one is more readable.'
-    date: 2007-10-17T22:55:15+02:00
-    tags: []
-    version: 0.02
-  - author: 'Marcel Gruenauer <marcel@cpan.org>'
-    changes:
-      - original version
-    date: 2007-10-17T11:02:38+02:00
-    tags: []
-    version: 0.01
+Revision history for Perl extension Class-Accessor-Complex
+
+0.14 Fri Oct 31 00:37:23 CET 2008 (Marcel Gruenauer <marcel@cpan.org>)
+     - Changed dist style and Changes back to standard. People didn't like it -
+       the nail that sticks out gets hammered down.
+     - Added standard test files; this will also help with CPANTS.
+     - Added key count method to hash (Florian Helmberger)
+
+0.13  Thu, 29 May 2008 12:01:12 -0000 (Marcel Gruenauer <marcel@cpan.org>)
+     - set the version to 0.13
+     - Class::Accessor::Complex now uses List::MoreUtil's uniq() to filter out
+       duplicate method names
+     - t/01_integer.t: added test to check that no (redefined) warnings
+       occurred
+     - .shipit: fixed svk.tagpattern
+
+0.12  Wed, 21 Nov 2007 18:20:58 -0000 (Marcel Gruenauer <marcel@cpan.org>)
+     - Converted Changes file to YAML style
+     - .shipit: added Twitter step
+     - Makefile.PL: added auto_install() and process_templates()
+     - lib/*: converted to template
+     - updated MANIFEST
+     - improved documentation generated for mk_new()
+     - added documentation generated for mk_singleton()
+     - added documentation generated for mk_class_scalar_accessors()
+     - added documentation generated for mk_concat_accessors()
+     - added documentation generated for mk_class_array_accessors()
+     - added documentation generated for mk_hash_accessors()
+     - added documentation generated for mk_class_hash_accessors()
+     - added documentation generated for mk_boolean_accessors()
+     - added documentation generated for mk_integer_accessors()
+     - added documentation generated for mk_set_accessors()
+     - added documentation generated for mk_object_accessors()
+     - added documentation generated for mk_forward_accessors()
+     - slightly improved generated documentation
+     - documented that it generates documentation
+     - updated t/perlcriticrc
+     - tags: NEWFEATURE
+
+0.11  Fri, 02 Nov 2007 16:26:48 +0100 (Marcel Gruenauer <marcel@cpan.org>)
+     - added mk_class_scalar_accessors() and its tests
+
+0.10  Tue, 23 Oct 2007 23:35:42 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - now uses Class::Accessor::Installer
+
+0.09  Sun, 21 Oct 2007 19:58:17 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - fixed a bug in mk_object_accessors() where we used $class instead of
+       $type
+
+0.08  Sun, 21 Oct 2007 10:18:11 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - added mk_forward_accessors()
+
+0.07  Sat, 20 Oct 2007 22:16:22 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - simplified accessor declaration
+
+0.06  Sat, 20 Oct 2007 10:03:26 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - hopefully fixed the '"my" variable $class masks earlier declaration in
+       same scope' bug
+
+0.05  Fri, 19 Oct 2007 22:09:36 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - added mk_class_array_accessors()
+     - added t/10_class_array.t
+     - mk_new() and mk_singleton() now accept an argument list instead of just
+       one string, and create a constructor for each string.
+     - mk_object_accessors() is now more flexible, allowing you to define
+       several objects at once, with different composite methods on different
+       slots.
+
+0.04  Thu, 18 Oct 2007 10:09:39 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - fixed version requirement of Test::More
+     - added mk_scalar_accessors()
+     - fixed bug in mk_array_accessors()'s *_index() method
+     - added tests to t/06_array.t for *_splice() and *_index()
+     - added mk_concat_accessors and t/08_concat.t
+     - added mk_singleton and t/09_singleton.t
+     - fixed potential variable name clash ($class) in mk_new()
+
+0.03  Wed, 17 Oct 2007 23:36:30 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - mk_array_accessors() now also generates C<*_index>, C<index_*>,
+       C<*_splice> and C<splice_*>.
+
+0.02  Wed, 17 Oct 2007 22:55:15 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - as well as generating C<*_foo> methods, it now also generates C<foo_*>
+       methods so you can choose which one to use depending on which one is
+       more readable.
+
+0.01  Wed, 17 Oct 2007 11:02:38 +0200 (Marcel Gruenauer <marcel@cpan.org>)
+     - original version
