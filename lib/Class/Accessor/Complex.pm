@@ -7,7 +7,7 @@ use Data::Miscellany 'flatten';
 use List::MoreUtils 'uniq';
 
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 
 use base qw(Class::Accessor Class::Accessor::Installer);

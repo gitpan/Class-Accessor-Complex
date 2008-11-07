@@ -1,5 +1,10 @@
 Revision history for Perl extension Class-Accessor-Complex
 
+0.15  Fri Nov  7 14:21:10 CET 2008 (Marcel Gruenauer <marcel@cpan.org>)
+     - Updated Module::Install; there was a segfault maybe related to an old
+       version of Module::Install, see
+       http://www.nntp.perl.org/group/perl.cpan.testers/2008/10/msg2521929.html
+
 0.14 Fri Oct 31 00:37:23 CET 2008 (Marcel Gruenauer <marcel@cpan.org>)
      - Changed dist style and Changes back to standard. People didn't like it -
        the nail that sticks out gets hammered down.
