@@ -1,5 +1,9 @@
 Revision history for Perl extension Class-Accessor-Complex
 
+0.16  Sun 2009.12.06 22:47:16 CET (Marcel Gruenauer <marcel@cpan.org>)
+     - reduced dependencies using author tests
+     - better dist engineering (INSTALL, README, README.mkdn etc.)
+
 0.15  Fri Nov  7 14:21:10 CET 2008 (Marcel Gruenauer <marcel@cpan.org>)
      - Updated Module::Install; there was a segfault maybe related to an old
        version of Module::Install, see

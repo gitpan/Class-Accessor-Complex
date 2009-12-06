@@ -1,12 +1,14 @@
 ---
-abstract: 'arrays, hashes, booleans, integers, sets and more'
+abstract: 'Arrays, hashes, booleans, integers, sets and more'
 author:
   - 'Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>'
 build_requires:
-  Test::Compile: 0
+  ExtUtils::MakeMaker: 6.42
   Test::More: 0.70
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.77'
+generated_by: 'Module::Install version 0.91'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -16,9 +18,7 @@ no_index:
   directory:
     - inc
     - t
-recommends:
-  Test::Pod: 0
-  Test::Pod::Coverage: 0
+    - xt
 requires:
   Class::Accessor: 0
   Class::Accessor::Installer: 0
@@ -27,5 +27,8 @@ requires:
   Test::NoWarnings: 0
   perl: 5.6.0
 resources:
+  bugtracker: http://rt.cpan.org/Public/Dist/Display.html?Name=Class-Accessor-Complex
+  homepage: http://search.cpan.org/dist/Class-Accessor-Complex/
   license: http://dev.perl.org/licenses/
-version: 0.15
+  repository: git://github.com/hanekomu/class-accessor-complex.git
+version: 0.16
