@@ -2,6 +2,9 @@ NAME
     Class::Accessor::Complex - Arrays, hashes, booleans, integers, sets and
     more
 
+VERSION
+    version 1.100820
+
 SYNOPSIS
       package MyClass;
       use base 'Class::Accessor::Complex';
@@ -30,10 +33,7 @@ DESCRIPTION
     The accessor generators also generate documentation ready to be used
     with Pod::Generated.
 
-ACCESSORS
-    This section describes the accessor makers offered by this module, and
-    the methods it generates.
-
+METHODS
   mk_new
     Takes an array of strings as its argument. If no argument is given, it
     uses "new" as the default. For each string it creates a constructor of
@@ -371,30 +371,34 @@ ACCESSORS
     "comp1()", and calls to "method2()" and "method3()" will be forwarded
     onto "comp2()".
 
-BUGS AND LIMITATIONS
-    No bugs have been reported.
-
-    Please report any bugs or feature requests through the web interface at
-    <http://rt.cpan.org>.
-
 INSTALLATION
     See perlmodinstall for information and options on installing Perl
     modules.
 
+BUGS AND LIMITATIONS
+    No bugs have been reported.
+
+    Please report any bugs or feature requests through the web interface at
+    <http://rt.cpan.org/Public/Dist/Display.html?Name=Class-Accessor-Complex
+    >.
+
 AVAILABILITY
     The latest version of this module is available from the Comprehensive
     Perl Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a
-    CPAN site near you. Or see
+    CPAN site near you, or see
     <http://search.cpan.org/dist/Class-Accessor-Complex/>.
 
-AUTHORS
-    Marcel Grünauer, "<marcel@cpan.org>"
+    The development version lives at
+    <http://github.com/hanekomu/Class-Accessor-Complex/>. Instead of sending
+    patches, please fork this project using the standard git and github
+    infrastructure.
 
-    Florian Helmberger, "<florian@cpan.org>"
+AUTHOR
+      Marcel Gruenauer <marcel@cpan.org>
 
 COPYRIGHT AND LICENSE
-    Copyright 2007-2009 by the authors.
+    This software is copyright (c) 2007 by Marcel Gruenauer.
 
-    This library is free software; you can redistribute it and/or modify it
-    under the same terms as Perl itself.
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
 

@@ -1,12 +1,14 @@
-package Class::Accessor::Complex;
-use 5.006;
-use warnings;
+use 5.008;
 use strict;
+use warnings;
+
+package Class::Accessor::Complex;
+our $VERSION = '1.100820';
+# ABSTRACT: Arrays, hashes, booleans, integers, sets and more
 use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
 use List::MoreUtils 'uniq';
-our $VERSION = '0.16';
-use base qw(Class::Accessor Class::Accessor::Installer);
+use parent qw(Class::Accessor Class::Accessor::Installer);
 
 sub mk_new {
     my ($self, @args) = @_;
@@ -1341,11 +1343,18 @@ EODOC
     $self;    # for chaining
 }
 1;
+
+
 __END__
+=pod
 
 =head1 NAME
 
 Class::Accessor::Complex - Arrays, hashes, booleans, integers, sets and more
+
+=head1 VERSION
+
+version 1.100820
 
 =head1 SYNOPSIS
 
@@ -1363,7 +1372,6 @@ Class::Accessor::Complex - Arrays, hashes, booleans, integers, sets and more
           comp_mthds => [ qw(do_this do_that) ]
       });
 
-
 =head1 DESCRIPTION
 
 This module generates accessors for your class in the same spirit as
@@ -1378,10 +1386,7 @@ to one of its accessor makers at the end of the chain.
 The accessor generators also generate documentation ready to be used with
 L<Pod::Generated>.
 
-=head1 ACCESSORS
-
-This section describes the accessor makers offered by this module, and the
-methods it generates.
+=head1 METHODS
 
 =head2 mk_new
 
@@ -1733,7 +1738,6 @@ Returns the number of elements in the set.
         ],
     );
 
-
 The main argument should be a reference to an array. The array should contain
 pairs of class => sub-argument pairs. The sub-arguments parsed thus:
 
@@ -1828,34 +1832,39 @@ In the example above, a call to C<method1()> will be forwarded onto
 C<comp1()>, and calls to C<method2()> and C<method3()> will be forwarded onto
 C<comp2()>.
 
+=head1 INSTALLATION
+
+See perlmodinstall for information and options on installing Perl modules.
+
 =head1 BUGS AND LIMITATIONS
 
 No bugs have been reported.
 
 Please report any bugs or feature requests through the web interface at
-L<http://rt.cpan.org>.
-
-=head1 INSTALLATION
-
-See perlmodinstall for information and options on installing Perl modules.
+L<http://rt.cpan.org/Public/Dist/Display.html?Name=Class-Accessor-Complex>.
 
 =head1 AVAILABILITY
 
 The latest version of this module is available from the Comprehensive Perl
-Archive Network (CPAN). Visit <http://www.perl.com/CPAN/> to find a CPAN
-site near you. Or see L<http://search.cpan.org/dist/Class-Accessor-Complex/>.
+Archive Network (CPAN). Visit L<http://www.perl.com/CPAN/> to find a CPAN
+site near you, or see
+L<http://search.cpan.org/dist/Class-Accessor-Complex/>.
 
-=head1 AUTHORS
+The development version lives at
+L<http://github.com/hanekomu/Class-Accessor-Complex/>.
+Instead of sending patches, please fork this project using the standard git
+and github infrastructure.
 
-Marcel GrE<uuml>nauer, C<< <marcel@cpan.org> >>
+=head1 AUTHOR
 
-Florian Helmberger, C<< <florian@cpan.org> >>
+  Marcel Gruenauer <marcel@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2007-2009 by the authors.
+This software is copyright (c) 2007 by Marcel Gruenauer.
 
-This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 =cut
+

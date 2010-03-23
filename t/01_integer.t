@@ -1,8 +1,7 @@
 #!/usr/bin/env perl
 use warnings;
 use strict;
-use Test::More tests => 9;
-use Test::NoWarnings;
+use Test::More tests => 8;
 
 package Test01;
 use base 'Class::Accessor::Complex';
