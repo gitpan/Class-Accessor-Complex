@@ -4,7 +4,7 @@ use strict;
 use Test::More tests => 2;
 
 package Test01;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_abstract_accessors(qw(not_there));
 
 package Test02;

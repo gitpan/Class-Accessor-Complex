@@ -9,7 +9,7 @@
       "version" : 1.4,
       "url" : "http://module-build.sourceforge.net/META-spec-v1.4.html"
    },
-   "version" : "1.100820",
+   "version" : "1.100880",
    "name" : "Class-Accessor-Complex",
    "author" : [
       "Marcel Gruenauer <marcel@cpan.org>"
@@ -18,7 +18,7 @@
    "build_requires" : {},
    "provides" : {
       "Class::Accessor::Complex" : {
-         "version" : "1.100820",
+         "version" : "1.100880",
          "file" : "lib/Class/Accessor/Complex.pm"
       }
    },

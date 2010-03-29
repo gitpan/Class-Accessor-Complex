@@ -4,7 +4,7 @@ use strict;
 use Test::More tests => 5;
 
 package Foo;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_class_scalar_accessors(qw(a_scalar));
 
 package main;

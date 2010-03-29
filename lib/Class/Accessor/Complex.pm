@@ -3,7 +3,8 @@ use strict;
 use warnings;
 
 package Class::Accessor::Complex;
-our $VERSION = '1.100820';
+our $VERSION = '1.100880';
+
 # ABSTRACT: Arrays, hashes, booleans, integers, sets and more
 use Carp qw(carp croak cluck);
 use Data::Miscellany 'flatten';
@@ -33,6 +34,9 @@ sub mk_new {
                 $self->init(%args) if $self->can('init');
                 $self;
             },
+        );
+        $self->document_accessor(
+            name    => $name,
             purpose => <<'EODOC',
 Creates and returns a new object. The constructor will accept as arguments a
 list of pairs, from component name to initial value. For each pair, the named
@@ -40,7 +44,7 @@ component is initialized by calling the method of the same name with the given
 value. If called with a single hash reference, it is dereferenced and its
 key/value pairs are set as described before.
 EODOC
-            example => [
+            examples => [
                 "my \$obj = $class->$name;",
                 "my \$obj = $class->$name(\%args);",
             ],
@@ -76,6 +80,9 @@ sub mk_singleton {
                 $singleton->init(%args) if $singleton->can('init');
                 $singleton;
             },
+        );
+        $self->document_accessor(
+            name    => $name,
             purpose => <<'EODOC',
 Creates and returns a new object. The object will be a singleton, so repeated
 calls to the constructor will always return the same object. The constructor
@@ -85,7 +92,7 @@ method of the same name with the given value. If called with a single hash
 reference, it is dereferenced and its key/value pairs are set as described
 before.
 EODOC
-            example => [
+            examples => [
                 "my \$obj = $class->$name;",
                 "my \$obj = $class->$name(\%args);",
             ],
@@ -106,14 +113,18 @@ sub mk_scalar_accessors {
                 return $_[0]->{$field} if @_ == 1;
                 $_[0]->{$field} = $_[1];
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 A basic getter/setter method. If called without an argument, it returns the
 value. If called with a single argument, it sets the value.
 EODOC
-            example =>
+            examples =>
               [ "my \$value = \$obj->$field;", "\$obj->$field(\$value);", ],
         );
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -121,12 +132,14 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = undef;
                 },
-                purpose => <<'EODOC',
-Clears the value.
-EODOC
-                example => "\$obj->$name;",
             );
         }
+        $self->document_accessor(
+            name       => \@clear_methods,
+            purpose    => 'Clears the value.',
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -144,16 +157,20 @@ sub mk_class_scalar_accessors {
                 return $scalar if @_ == 1;
                 $scalar = $_[1];
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 A basic getter/setter method. This is a class variable, so it is shared
 between all instances of this class. Changing it in one object will change it
 for all other objects as well. If called without an argument, it returns the
 value. If called with a single argument, it sets the value.
 EODOC
-            example =>
+            examples =>
               [ "my \$value = \$obj->$field;", "\$obj->$field(\$value);", ],
         );
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -161,13 +178,17 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $scalar = undef;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
 Clears the value. Since this is a class variable, the value will be undefined
 for all instances of this class.
 EODOC
-                example => "\$obj->$name;",
-            );
-        }
+            example    => "\$obj->$clear_methods[0];",
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -198,16 +219,20 @@ sub mk_concat_accessors {
                 }
                 return $self->{$field};
             },
+        );
+        $self->document_accessor(
+            name => $field,
 
             # FIXME use the current value of $join in the docs
             purpose => <<'EODOC',
 A getter/setter method. If called without an argument, it returns the
 value. If called with a single argument, it appends to the current value.
 EODOC
-            example =>
+            examples =>
               [ "my \$value = \$obj->$field;", "\$obj->$field(\$value);", ],
         );
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -215,12 +240,16 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = undef;
                 },
-                purpose => <<'EODOC',
-Clears the value.
-EODOC
-                example => "\$obj->$name;",
             );
         }
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
+Clears the value.
+EODOC
+            example    => "\$obj->$clear_methods[0];",
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -241,20 +270,24 @@ sub mk_array_accessors {
                   if @list;
                 wantarray ? @{ $self->{$field} } : $self->{$field};
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 Get or set the array values. If called without arguments, it returns the
 array in list context, or a reference to the array in scalar context. If
 called with arguments, it expands array references found therein and sets the
 values.
 EODOC
-            example => [
+            examples => [
                 "my \@values    = \$obj->$field;",
                 "my \$array_ref = \$obj->$field;",
                 "\$obj->$field(\@values);",
                 "\$obj->$field(\$array_ref);",
             ],
         );
-        for my $name (uniq "push_${field}", "${field}_push") {
+        my @push_methods = uniq "push_${field}", "${field}_push";
+        for my $name (@push_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -263,13 +296,16 @@ EODOC
                     my $self = shift;
                     push @{ $self->{$field} } => @_;
                 },
-                purpose => <<'EODOC',
-Pushes elements onto the end of the array.
-EODOC
-                example => "\$obj->$name(\@values);",
             );
         }
-        for my $name (uniq "pop_${field}", "${field}_pop") {
+        $self->document_accessor(
+            name       => \@push_methods,
+            belongs_to => $field,
+            purpose    => 'Pushes elements onto the end of the array.',
+            examples   => ["\$obj->$push_methods[0](\@values);"],
+        );
+        my @pop_methods = uniq "pop_${field}", "${field}_pop";
+        for my $name (@pop_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -277,13 +313,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     pop @{ $_[0]->{$field} };
                 },
-                purpose => <<'EODOC',
-Pops the last element off the array, returning it.
-EODOC
-                example => "my \$value = \$obj->$name;",
             );
         }
-        for my $name (uniq "unshift_${field}", "${field}_unshift") {
+        $self->document_accessor(
+            name    => \@pop_methods,
+            purpose => <<'EODOC',
+Pops the last element off the array, returning it.
+EODOC
+            examples   => ["my \$value = \$obj->$pop_methods[0];"],
+            belongs_to => $field,
+        );
+        my @unshift_methods = uniq "unshift_${field}", "${field}_unshift";
+        for my $name (@unshift_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -292,13 +333,18 @@ EODOC
                     my $self = shift;
                     unshift @{ $self->{$field} } => @_;
                 },
-                purpose => <<'EODOC',
-Unshifts elements onto the beginning of the array.
-EODOC
-                example => "\$obj->$name(\@values);",
             );
         }
-        for my $name (uniq "shift_${field}", "${field}_shift") {
+        $self->document_accessor(
+            name    => \@unshift_methods,
+            purpose => <<'EODOC',
+Unshifts elements onto the beginning of the array.
+EODOC
+            examples   => ["\$obj->$unshift_methods[0](\@values);"],
+            belongs_to => $field,
+        );
+        my @shift_methods = uniq "shift_${field}", "${field}_shift";
+        for my $name (@shift_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -306,13 +352,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     shift @{ $_[0]->{$field} };
                 },
-                purpose => <<'EODOC',
-Shifts the first element off the array, returning it.
-EODOC
-                example => "my \$value = \$obj->$name;",
             );
         }
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        $self->document_accessor(
+            name    => \@shift_methods,
+            purpose => <<'EODOC',
+Shifts the first element off the array, returning it.
+EODOC
+            examples   => ["my \$value = \$obj->$shift_methods[0];"],
+            belongs_to => $field,
+        );
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -320,13 +371,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = [];
                 },
-                purpose => <<'EODOC',
-Deletes all elements from the array.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "count_${field}", "${field}_count") {
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
+Deletes all elements from the array.
+EODOC
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
+        my @count_methods = uniq "count_${field}", "${field}_count";
+        for my $name (@count_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -334,13 +390,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     exists $_[0]->{$field} ? scalar @{ $_[0]->{$field} } : 0;
                 },
-                purpose => <<'EODOC',
-Returns the number of elements in the array.
-EODOC
-                example => "my \$count = \$obj->$name;",
             );
         }
-        for my $name (uniq "splice_${field}", "${field}_splice") {
+        $self->document_accessor(
+            name    => \@count_methods,
+            purpose => <<'EODOC',
+Returns the number of elements in the array.
+EODOC
+            examples   => ["my \$count = \$obj->$count_methods[0];"],
+            belongs_to => $field,
+        );
+        my @splice_methods = uniq "splice_${field}", "${field}_splice";
+        for my $name (@splice_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -349,7 +410,11 @@ EODOC
                     my ($self, $offset, $len, @list) = @_;
                     splice(@{ $self->{$field} }, $offset, $len, @list);
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@splice_methods,
+            purpose => <<'EODOC',
 Takes three arguments: An offset, a length and a list.
 
 Removes the elements designated by the offset and the length from the array,
@@ -364,14 +429,15 @@ offset and the length are omitted, removes everything. If the offset is past
 the end of the array, it issues a warning, and splices at the end of the
 array.
 EODOC
-                example => [
-                    "\$obj->$name(2, 1, \$x, \$y);",
-                    "\$obj->$name(-1);",
-                    "\$obj->$name(0, -1);",
-                ],
-            );
-        }
-        for my $name (uniq "index_${field}", "${field}_index") {
+            examples => [
+                "\$obj->$splice_methods[0](2, 1, \$x, \$y);",
+                "\$obj->$splice_methods[0](-1);",
+                "\$obj->$splice_methods[0](0, -1);",
+            ],
+            belongs_to => $field,
+        );
+        my @index_methods = uniq "index_${field}", "${field}_index";
+        for my $name (@index_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -382,20 +448,25 @@ EODOC
                     return $result[0] if @indices == 1;
                     wantarray ? @result : \@result;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@index_methods,
+            purpose => <<'EODOC',
 Takes a list of indices and returns the elements indicated by those indices.
 If only one index is given, the corresponding array element is returned. If
 several indices are given, the result is returned as an array in list context
 or as an array reference in scalar context.
 EODOC
-                example => [
-                    "my \$element   = \$obj->$name(3);",
-                    "my \@elements  = \$obj->$name(\@indices);",
-                    "my \$array_ref = \$obj->$name(\@indices);",
-                ],
-            );
-        }
-        for my $name (uniq "set_${field}", "${field}_set") {
+            examples => [
+                "my \$element   = \$obj->$index_methods[0](3);",
+                "my \@elements  = \$obj->$index_methods[0](\@indices);",
+                "my \$array_ref = \$obj->$index_methods[0](\@indices);",
+            ],
+            belongs_to => $field,
+        );
+        my @set_methods = uniq "set_${field}", "${field}_set";
+        for my $name (@set_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -411,14 +482,18 @@ EODOC
                     }
                     return @_ / 2;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@set_methods,
+            purpose => <<'EODOC',
 Takes a list of index/value pairs and for each pair it sets the array element
 at the indicated index to the indicated value. Returns the number of elements
 that have been set.
 EODOC
-                example => "\$obj->$name(1 => \$x, 5 => \$y);",
-            );
-        }
+            examples   => ["\$obj->$set_methods[0](1 => \$x, 5 => \$y);"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -438,6 +513,9 @@ sub mk_class_array_accessors {
                   if @list;
                 wantarray ? @array : \@array;
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 Get or set the array values. If called without an arguments, it returns the
 array in list context, or a reference to the array in scalar context. If
@@ -447,14 +525,15 @@ values.
 This is a class variable, so it is shared between all instances of this class.
 Changing it in one object will change it for all other objects as well.
 EODOC
-            example => [
+            examples => [
                 "my \@values    = \$obj->$field;",
                 "my \$array_ref = \$obj->$field;",
                 "\$obj->$field(\@values);",
                 "\$obj->$field(\$array_ref);",
             ],
         );
-        for my $name (uniq "push_${field}", "${field}_push") {
+        my @push_methods = uniq "push_${field}", "${field}_push";
+        for my $name (@push_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -463,14 +542,19 @@ EODOC
                     my $self = shift;
                     push @array => @_;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@push_methods,
+            purpose => <<'EODOC',
 Pushes elements onto the end of the array. Since this is a class variable, the
 value will be changed for all instances of this class.
 EODOC
-                example => "\$obj->$name(\@values);",
-            );
-        }
-        for my $name (uniq "pop_${field}", "${field}_pop") {
+            examples   => ["\$obj->$push_methods[0](\@values);"],
+            belongs_to => $field,
+        );
+        my @pop_methods = uniq "pop_${field}", "${field}_pop";
+        for my $name (@pop_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -478,14 +562,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     pop @array;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@pop_methods,
+            purpose => <<'EODOC',
 Pops the last element off the array, returning it. Since this is a class
 variable, the value will be changed for all instances of this class.
 EODOC
-                example => "my \$value = \$obj->$name;",
-            );
-        }
-        for my $name (uniq "unshift_${field}", "${field}_unshift") {
+            examples   => ["my \$value = \$obj->$pop_methods[0];"],
+            belongs_to => $field,
+        );
+        my @field_methods = uniq "unshift_${field}", "${field}_unshift";
+        for my $name (@field_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -494,14 +583,19 @@ EODOC
                     my $self = shift;
                     unshift @array => @_;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@field_methods,
+            purpose => <<'EODOC',
 Unshifts elements onto the beginning of the array. Since this is a class
 variable, the value will be changed for all instances of this class.
 EODOC
-                example => "\$obj->$name(\@values);",
-            );
-        }
-        for my $name (uniq "shift_${field}", "${field}_shift") {
+            examples   => ["\$obj->$field_methods[0](\@values);"],
+            belongs_to => $field,
+        );
+        my @shift_methods = uniq "shift_${field}", "${field}_shift";
+        for my $name (@shift_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -509,14 +603,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     shift @array;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@shift_methods,
+            purpose => <<'EODOC',
 Shifts the first element off the array, returning it. Since this is a class
 variable, the value will be changed for all instances of this class.
 EODOC
-                example => "my \$value = \$obj->$name;",
-            );
-        }
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+            examples   => ["my \$value = \$obj->$shift_methods[0];"],
+            belongs_to => $field,
+        );
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -524,14 +623,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     @array = ();
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
 Deletes all elements from the array. Since this is a class variable, the value
 will be changed for all instances of this class.
 EODOC
-                example => "\$obj->$name;",
-            );
-        }
-        for my $name (uniq "count_${field}", "${field}_count") {
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
+        my @count_methods = uniq "count_${field}", "${field}_count";
+        for my $name (@count_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -539,14 +643,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     scalar @array;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@count_methods,
+            purpose => <<'EODOC',
 Returns the number of elements in the array. Since this is a class variable,
 the value will be changed for all instances of this class.
 EODOC
-                example => "my \$count = \$obj->$name;",
-            );
-        }
-        for my $name (uniq "splice_${field}", "${field}_splice") {
+            examples   => ["my \$count = \$obj->$count_methods[0];"],
+            belongs_to => $field,
+        );
+        my @splice_methods = uniq "splice_${field}", "${field}_splice";
+        for my $name (@splice_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -555,7 +664,11 @@ EODOC
                     my ($self, $offset, $len, @list) = @_;
                     splice(@array, $offset, $len, @list);
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@splice_methods,
+            purpose => <<'EODOC',
 Takes three arguments: An offset, a length and a list.
 
 Removes the elements designated by the offset and the length from the array,
@@ -573,14 +686,15 @@ array.
 Since this is a class variable, the value will be changed for all instances of
 this class.
 EODOC
-                example => [
-                    "\$obj->$name(2, 1, \$x, \$y);",
-                    "\$obj->$name(-1);",
-                    "\$obj->$name(0, -1);",
-                ],
-            );
-        }
-        for my $name (uniq "index_${field}", "${field}_index") {
+            examples => [
+                "\$obj->$splice_methods[0](2, 1, \$x, \$y);",
+                "\$obj->$splice_methods[0](-1);",
+                "\$obj->$splice_methods[0](0, -1);",
+            ],
+            belongs_to => $field,
+        );
+        my @index_methods = uniq "index_${field}", "${field}_index";
+        for my $name (@index_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -591,7 +705,11 @@ EODOC
                     return $result[0] if @indices == 1;
                     wantarray ? @result : \@result;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@index_methods,
+            purpose => <<'EODOC',
 Takes a list of indices and returns the elements indicated by those indices.
 If only one index is given, the corresponding array element is returned. If
 several indices are given, the result is returned as an array in list context
@@ -600,14 +718,15 @@ or as an array reference in scalar context.
 Since this is a class variable, the value will be changed for all instances of
 this class.
 EODOC
-                example => [
-                    "my \$element   = \$obj->$name(3);",
-                    "my \@elements  = \$obj->$name(\@indices);",
-                    "my \$array_ref = \$obj->$name(\@indices);",
-                ],
-            );
-        }
-        for my $name (uniq "set_${field}", "${field}_set") {
+            examples => [
+                "my \$element   = \$obj->$index_methods[0](3);",
+                "my \@elements  = \$obj->$index_methods[0](\@indices);",
+                "my \$array_ref = \$obj->$index_methods[0](\@indices);",
+            ],
+            belongs_to => $field,
+        );
+        my @set_methods = uniq "set_${field}", "${field}_set";
+        for my $name (@set_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -623,15 +742,19 @@ EODOC
                     }
                     return @_ / 2;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@set_methods,
+            purpose => <<'EODOC',
 Takes a list of index/value pairs and for each pair it sets the array element
 at the indicated index to the indicated value. Returns the number of elements
 that have been set. Since this is a class variable, the value will be changed
 for all instances of this class.
 EODOC
-                example => "\$obj->$name(1 => \$x, 5 => \$y);",
-            );
-        }
+            examples   => ["\$obj->$set_methods[0](1 => \$x, 5 => \$y);"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -677,6 +800,9 @@ sub mk_hash_accessors {
                     return wantarray ? %{ $self->{$field} } : $self->{$field};
                 }
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 Get or set the hash values. If called without arguments, it returns the hash
 in list context, or a reference to the hash in scalar context. If called
@@ -694,7 +820,7 @@ If called with exactly one hash reference, it updates the hash with the given
 key/value pairs, then returns the hash in list context, or a reference to the
 hash in scalar context.
 EODOC
-            example => [
+            examples => [
                 "my \%hash     = \$obj->$field;",
                 "my \$hash_ref = \$obj->$field;",
                 "my \$value    = \$obj->$field(\$key);",
@@ -703,7 +829,8 @@ EODOC
                 "\$obj->$field(foo => 23, bar => 42);",
             ],
         );
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -712,13 +839,18 @@ EODOC
                     my $self = shift;
                     $self->{$field} = {};
                 },
-                purpose => <<'EODOC',
-Deletes all keys and values from the hash.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "keys_${field}", "${field}_keys") {
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
+Deletes all keys and values from the hash.
+EODOC
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
+        my @keys_methods = uniq "keys_${field}", "${field}_keys";
+        for my $name (@keys_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -726,13 +858,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     keys %{ $_[0]->{$field} };
                 },
-                purpose => <<'EODOC',
-Returns a list of all hash keys in no particular order.
-EODOC
-                example => "my \@keys = \$obj->$name;",
             );
         }
-        for my $name (uniq "count_${field}", "${field}_count") {
+        $self->document_accessor(
+            name    => \@keys_methods,
+            purpose => <<'EODOC',
+Returns a list of all hash keys in no particular order.
+EODOC
+            examples   => ["my \@keys = \$obj->$keys_methods[0];"],
+            belongs_to => $field,
+        );
+        my @count_methods = uniq "count_${field}", "${field}_count";
+        for my $name (@count_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -740,13 +877,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     scalar keys %{ $_[0]->{$field} };
                 },
-                purpose => <<'EODOC',
-Returns the number of keys in the hash.
-EODOC
-                example => "my \$count = \$obj->$name;",
             );
         }
-        for my $name (uniq "values_${field}", "${field}_values") {
+        $self->document_accessor(
+            name    => \@count_methods,
+            purpose => <<'EODOC',
+Returns the number of keys in the hash.
+EODOC
+            examples   => ["my \$count = \$obj->$count_methods[0];"],
+            belongs_to => $field,
+        );
+        my @values_methods = uniq "values_${field}", "${field}_values";
+        for my $name (@values_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -754,13 +896,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     values %{ $_[0]->{$field} };
                 },
-                purpose => <<'EODOC',
-Returns a list of all hash values in no particular order.
-EODOC
-                example => "my \@values = \$obj->$name;",
             );
         }
-        for my $name (uniq "exists_${field}", "${field}_exists") {
+        $self->document_accessor(
+            name    => \@values_methods,
+            purpose => <<'EODOC',
+Returns a list of all hash values in no particular order.
+EODOC
+            examples   => ["my \@values = \$obj->$values_methods[0];"],
+            belongs_to => $field,
+        );
+        my @exists_methods = uniq "exists_${field}", "${field}_exists";
+        for my $name (@exists_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -769,14 +916,19 @@ EODOC
                     my ($self, $key) = @_;
                     exists $self->{$field} && exists $self->{$field}{$key};
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@exists_methods,
+            purpose => <<'EODOC',
 Takes a key and returns a true value if the key exists in the hash, and a
 false value otherwise.
 EODOC
-                example => "if (\$obj->$name(\$key)) { ... }",
-            );
-        }
-        for my $name (uniq "delete_${field}", "${field}_delete") {
+            examples   => ["if (\$obj->$exists_methods[0](\$key)) { ... }"],
+            belongs_to => $field,
+        );
+        my @delete_methods = uniq "delete_${field}", "${field}_delete";
+        for my $name (@delete_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -785,12 +937,15 @@ EODOC
                     my ($self, @keys) = @_;
                     delete @{ $self->{$field} }{@keys};
                 },
-                purpose => <<'EODOC',
-Takes a list of keys and deletes those keys from the hash.
-EODOC
-                example => "\$obj->$name(\@keys);",
             );
         }
+        $self->document_accessor(
+            name => \@delete_methods,
+            purpose =>
+              'Takes a list of keys and deletes those keys from the hash.',
+            examples   => ["\$obj->$delete_methods[0](\@keys);"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -830,6 +985,9 @@ sub mk_class_hash_accessors {
                     return wantarray ? %hash : \%hash;
                 }
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 Get or set the hash values. If called without arguments, it returns the hash
 in list context, or a reference to the hash in scalar context. If called
@@ -850,7 +1008,7 @@ hash in scalar context.
 This is a class variable, so it is shared between all instances of this class.
 Changing it in one object will change it for all other objects as well.
 EODOC
-            example => [
+            examples => [
                 "my \%hash     = \$obj->$field;",
                 "my \$hash_ref = \$obj->$field;",
                 "my \$value    = \$obj->$field(\$key);",
@@ -859,7 +1017,8 @@ EODOC
                 "\$obj->$field(foo => 23, bar => 42);",
             ],
         );
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -867,14 +1026,18 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     %hash = ();
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@clear_methods,
+            purpose => <<'EODOC',
 Deletes all keys and values from the hash. Since this is a class variable, the
 value will be changed for all instances of this class.
 EODOC
-                example => "\$obj->$name;",
-            );
-        }
-        for my $name (uniq "keys_${field}", "${field}_keys") {
+            examples => ["\$obj->$clear_methods[0];"],
+        );
+        my @keys_methods = uniq "keys_${field}", "${field}_keys";
+        for my $name (@keys_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -882,14 +1045,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     keys %hash;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@keys_methods,
+            purpose => <<'EODOC',
 Returns a list of all hash keys in no particular order. Since this is a class
 variable, the value will be changed for all instances of this class.
 EODOC
-                example => "my \@keys = \$obj->$name;",
-            );
-        }
-        for my $name (uniq "values_${field}", "${field}_values") {
+            examples   => ["my \@keys = \$obj->$keys_methods[0];"],
+            belongs_to => $field,
+        );
+        my @values_methods = uniq "values_${field}", "${field}_values";
+        for my $name (@values_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -897,14 +1065,19 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     values %hash;
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@values_methods,
+            purpose => <<'EODOC',
 Returns a list of all hash values in no particular order. Since this is a
 class variable, the value will be changed for all instances of this class.
 EODOC
-                example => "my \@values = \$obj->$name;",
-            );
-        }
-        for my $name (uniq "exists_${field}", "${field}_exists") {
+            examples   => ["my \@values = \$obj->$values_methods[0];"],
+            belongs_to => $field,
+        );
+        my @exists_methods = uniq "exists_${field}", "${field}_exists";
+        for my $name (@exists_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -912,15 +1085,20 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     exists $hash{ $_[1] };
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@exists_methods,
+            purpose => <<'EODOC',
 Takes a key and returns a true value if the key exists in the hash, and a
 false value otherwise. Since this is a class variable, the value will be
 changed for all instances of this class.
 EODOC
-                example => "if (\$obj->$name(\$key)) { ... }",
-            );
-        }
-        for my $name (uniq "delete_${field}", "${field}_delete") {
+            examples   => ["if (\$obj->$exists_methods[0](\$key)) { ... }"],
+            belongs_to => $field,
+        );
+        my @delete_methods = uniq "delete_${field}", "${field}_delete";
+        for my $name (@delete_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -929,13 +1107,17 @@ EODOC
                     my ($self, @keys) = @_;
                     delete @hash{@keys};
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@delete_methods,
+            purpose => <<'EODOC',
 Takes a list of keys and deletes those keys from the hash. Since this is a
 class variable, the value will be changed for all instances of this class.
 EODOC
-                example => "\$obj->$name(\@keys);",
-            );
-        }
+            examples   => ["\$obj->$delete_methods[0](\@keys);"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -980,15 +1162,19 @@ sub mk_boolean_accessors {
                 return $_[0]->{$field} if @_ == 1;
                 $_[0]->{$field} = $_[1] ? 1 : 0;    # normalize
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 If called without an argument, returns the boolean value (0 or 1). If called
 with an argument, it normalizes it to the boolean value. That is, the values
 0, undef and the empty string become 0; everything else becomes 1.
 EODOC
-            example =>
+            examples =>
               [ "\$obj->$field(\$value);", "my \$value = \$obj->$field;", ],
         );
-        for my $name (uniq "set_${field}", "${field}_set") {
+        my @set_methods = uniq "set_${field}", "${field}_set";
+        for my $name (@set_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -996,13 +1182,16 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = 1;
                 },
-                purpose => <<'EODOC',
-Sets the boolean value to 1.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        $self->document_accessor(
+            name       => \@set_methods,
+            purpose    => 'Sets the boolean value to 1.',
+            examples   => ["\$obj->$set_methods[0];"],
+            belongs_to => $field,
+        );
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1010,12 +1199,14 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = 0;
                 },
-                purpose => <<'EODOC',
-Clears the boolean value by setting it to 0.
-EODOC
-                example => "\$obj->$name;",
             );
         }
+        $self->document_accessor(
+            name       => \@clear_methods,
+            purpose    => 'Clears the boolean value by setting it to 0.',
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -1033,15 +1224,19 @@ sub mk_integer_accessors {
                 return $self->{$field} || 0 unless @_;
                 $self->{$field} = shift;
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 A basic getter/setter method. If called without an argument, it returns the
 value, or 0 if there is no previous value. If called with a single argument,
 it sets the value.
 EODOC
-            example =>
+            examples =>
               [ "\$obj->$field(\$value);", "my \$value = \$obj->$field;", ],
         );
-        for my $name (uniq "reset_${field}", "${field}_reset") {
+        my @reset_methods = uniq "reset_${field}", "${field}_reset";
+        for my $name (@reset_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1049,13 +1244,16 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = 0;
                 },
-                purpose => <<'EODOC',
-Resets the value to 0.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "inc_${field}", "${field}_inc") {
+        $self->document_accessor(
+            name       => \@reset_methods,
+            purpose    => 'Resets the value to 0.',
+            examples   => ["\$obj->$reset_methods[0];"],
+            belongs_to => $field,
+        );
+        my @inc_methods = uniq "inc_${field}", "${field}_inc";
+        for my $name (@inc_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1063,13 +1261,16 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field}++;
                 },
-                purpose => <<'EODOC',
-Increases the value by 1.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "dec_${field}", "${field}_dec") {
+        $self->document_accessor(
+            name       => \@inc_methods,
+            purpose    => 'Increases the value by 1.',
+            examples   => ["\$obj->$inc_methods[0];"],
+            belongs_to => $field,
+        );
+        my @dec_methods = uniq "dec_${field}", "${field}_dec";
+        for my $name (@dec_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1077,12 +1278,14 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field}--;
                 },
-                purpose => <<'EODOC',
-Decreases the value by 1.
-EODOC
-                example => "\$obj->$name;",
             );
         }
+        $self->document_accessor(
+            name       => \@dec_methods,
+            purpose    => 'Decreases the value by 1.',
+            examples   => ["\$obj->$dec_methods[0];"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -1105,6 +1308,9 @@ sub mk_set_accessors {
                     $self->$elements_method;
                 }
             },
+        );
+        $self->document_accessor(
+            name    => $field,
             purpose => <<'EODOC',
 A set is like an array except that each element can occur only one. It is,
 however, not ordered. If called with a list of arguments, it adds those
@@ -1112,12 +1318,13 @@ elements to the set. If the first argument is an array reference, the values
 contained therein are added to the set. If called without arguments, it
 returns the elements of the set.
 EODOC
-            example => [
+            examples => [
                 "my \@elements = \$obj->$field;",
                 "\$obj->$field(\@elements);",
             ],
         );
-        for my $name (uniq "insert_${field}", $insert_method) {
+        my @insert_methods = uniq "insert_${field}", $insert_method;
+        for my $name (@insert_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1126,15 +1333,20 @@ EODOC
                     my $self = shift;
                     $self->{$field}{$_}++ for flatten(@_);
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@insert_methods,
+            purpose => <<'EODOC',
 If called with a list of arguments, it adds those elements to the set. If the
 first argument is an array reference, the values contained therein are added
 to the set.
 EODOC
-                example => "\$obj->$name(\@elements);",
-            );
-        }
-        for my $name (uniq "elements_${field}", $elements_method) {
+            examples   => ["\$obj->$insert_methods[0](\@elements);"],
+            belongs_to => $field,
+        );
+        my @elements_methods = uniq "elements_${field}", $elements_method;
+        for my $name (@elements_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1144,13 +1356,16 @@ EODOC
                     $self->{$field} ||= {};
                     keys %{ $self->{$field} };
                 },
-                purpose => <<'EODOC',
-Returns the elements of the set.
-EODOC
-                example => "my \@elements = \$obj->$name;",
             );
         }
-        for my $name (uniq "delete_${field}", "${field}_delete") {
+        $self->document_accessor(
+            name       => \@elements_methods,
+            purpose    => 'Returns the elements of the set.',
+            examples   => ["my \@elements = \$obj->$elements_methods[0];"],
+            belongs_to => $field,
+        );
+        my @delete_methods = uniq "delete_${field}", "${field}_delete";
+        for my $name (@delete_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1159,13 +1374,18 @@ EODOC
                     my $self = shift;
                     delete $self->{$field}{$_} for @_;
                 },
-                purpose => <<'EODOC',
-If called with a list of values, it deletes those elements from the set.
-EODOC
-                example => "\$obj->$name(\@elements);",
             );
         }
-        for my $name (uniq "clear_${field}", "${field}_clear") {
+        $self->document_accessor(
+            name    => \@delete_methods,
+            purpose => <<'EODOC',
+If called with a list of values, it deletes those elements from the set.
+EODOC
+            examples   => ["\$obj->$delete_methods[0](\@elements);"],
+            belongs_to => $field,
+        );
+        my @clear_methods = uniq "clear_${field}", "${field}_clear";
+        for my $name (@clear_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1173,13 +1393,16 @@ EODOC
                       if defined &DB::DB && !$Devel::DProf::VERSION;
                     $_[0]->{$field} = {};
                 },
-                purpose => <<'EODOC',
-Deletes all elements from the set.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "contains_${field}", "${field}_contains") {
+        $self->document_accessor(
+            name       => \@clear_methods,
+            purpose    => 'Deletes all elements from the set.',
+            examples   => ["\$obj->$clear_methods[0];"],
+            belongs_to => $field,
+        );
+        my @contains_methods = uniq "contains_${field}", "${field}_contains";
+        for my $name (@contains_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1189,14 +1412,20 @@ EODOC
                     return unless defined $key;
                     exists $self->{$field}{$key};
                 },
-                purpose => <<'EODOC',
+            );
+        }
+        $self->document_accessor(
+            name    => \@contains_methods,
+            purpose => <<'EODOC',
 Takes a single key and returns a boolean value indicating whether that key is
 an element of the set.
 EODOC
-                example => "if (\$obj->$name(\$element)) { ... }",
-            );
-        }
-        for my $name (uniq "is_empty_${field}", "${field}_is_empty") {
+            examples => ["if (\$obj->$contains_methods[0](\$element)) { ... }"],
+            ,
+            belongs_to => $field,
+        );
+        my @is_empty_methods = uniq "is_empty_${field}", "${field}_is_empty";
+        for my $name (@is_empty_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1205,13 +1434,17 @@ EODOC
                     my $self = shift;
                     keys %{ $self->{$field} || {} } == 0;
                 },
-                purpose => <<'EODOC',
-Returns a boolean value indicating whether the set is empty of not.
-EODOC
-                example => "\$obj->$name;",
             );
         }
-        for my $name (uniq "size_${field}", "${field}_size") {
+        $self->document_accessor(
+            name => \@is_empty_methods,
+            purpose =>
+'Returns a boolean value indicating whether the set is empty of not.',
+            examples   => ["\$obj->$is_empty_methods[0];"],
+            belongs_to => $field,
+        );
+        my @size_methods = uniq "size_${field}", "${field}_size";
+        for my $name (@size_methods) {
             $self->install_accessor(
                 name => $name,
                 code => sub {
@@ -1220,12 +1453,14 @@ EODOC
                     my $self = shift;
                     scalar keys %{ $self->{$field} || {} };
                 },
-                purpose => <<'EODOC',
-Returns the number of elements in the set.
-EODOC
-                example => "my \$size = \$obj->$name;",
             );
         }
+        $self->document_accessor(
+            name       => \@size_methods,
+            purpose    => 'Returns the number of elements in the set.',
+            examples   => ["my \$size = \$obj->$size_methods[0];"],
+            belongs_to => $field,
+        );
     }
     $self;    # for chaining
 }
@@ -1260,13 +1495,16 @@ sub mk_object_accessors {
                         my ($self, @args) = @_;
                         $self->$name()->$meth(@args);
                     },
+                );
+                $self->document_accessor(
+                    name    => $meth,
                     purpose => <<EODOC,
 Calls $meth() with the given arguments on the object stored in the $name slot.
 If there is no such object, a new $type object is constructed - no arguments
 are passed to the constructor - and stored in the $name slot before forwarding
 $meth() onto it.
 EODOC
-                    example => [ "\$obj->$meth(\@args);", "\$obj->$meth;", ],
+                    examples => [ "\$obj->$meth(\@args);", "\$obj->$meth;", ],
                 );
             }
             $self->install_accessor(
@@ -1283,6 +1521,9 @@ EODOC
                     }
                     $self->{$name};
                 },
+            );
+            $self->document_accessor(
+                name    => $name,
                 purpose => <<EODOC,
 If called with an argument object of type $type it sets the object; further
 arguments are discarded. If called with arguments but the first argument is
@@ -1294,12 +1535,13 @@ if there is no such object, a new $type object is constructed - no arguments
 are passed to the constructor in this case - and stored in the $name slot
 before returning it.
 EODOC
-                example => [
+                examples => [
                     "my \$object = \$obj->$name;", "\$obj->$name(\$object);",
                     "\$obj->$name(\@args);",
                 ],
             );
-            for my $meth ("clear_${name}", "${name}_clear") {
+            my @clear_methods = uniq "clear_${name}", "${name}_clear";
+            for my $meth (@clear_methods) {
                 $self->install_accessor(
                     name => $meth,
                     code => sub {
@@ -1307,12 +1549,14 @@ EODOC
                           if defined &DB::DB && !$Devel::DProf::VERSION;
                         delete $_[0]->{$name};
                     },
-                    purpose => <<'EODOC',
-Deletes the object.
-EODOC
-                    example => "\$obj->$meth;",
                 );
             }
+            $self->document_accessor(
+                name       => \@clear_methods,
+                purpose    => 'Deletes the object.',
+                examples   => "\$obj->$clear_methods[0];",
+                belongs_to => $name,
+            );
         }
     }
     $self;    # for chaining
@@ -1332,11 +1576,14 @@ sub mk_forward_accessors {
                     my ($self, @args) = @_;
                     $self->$slot()->$field(@args);
                 },
+            );
+            $self->document_accessor(
+                name    => $field,
                 purpose => <<EODOC,
 Calls $field() with the given arguments on the object stored in the $slot
 slot. 
 EODOC
-                example => [ "\$obj->$field(\@args);", "\$obj->$field;", ],
+                examples => [ "\$obj->$field(\@args);", "\$obj->$field;", ],
             );
         }
     }
@@ -1354,7 +1601,7 @@ Class::Accessor::Complex - Arrays, hashes, booleans, integers, sets and more
 
 =head1 VERSION
 
-version 1.100820
+version 1.100880
 
 =head1 SYNOPSIS
 
@@ -1384,7 +1631,7 @@ because this module inherits from L<Class::Accessor>, you can put a call
 to one of its accessor makers at the end of the chain.
 
 The accessor generators also generate documentation ready to be used with
-L<Pod::Generated>.
+L<Sub::Documentation>.
 
 =head1 METHODS
 

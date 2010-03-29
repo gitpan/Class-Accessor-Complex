@@ -4,7 +4,7 @@ use strict;
 use Test::More tests => 4;
 
 package Test01;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_object_accessors(
     'Some::Foo' => {
         slot       => 'an_object',
@@ -13,7 +13,7 @@ __PACKAGE__->mk_new->mk_object_accessors(
 );
 
 package Some::Foo;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_accessors(qw(text));
 
 sub do_this {

@@ -4,15 +4,15 @@ use strict;
 use Test::More tests => 7;
 
 package Test01;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_scalar_accessors(qw(method1));
 
 package Test02;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_scalar_accessors(qw(method2 method3));
 
 package Foo;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_object_accessors(
     Test01 => 'comp1',
     Test02 => 'comp2',

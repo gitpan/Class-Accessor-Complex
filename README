@@ -3,7 +3,7 @@ NAME
     more
 
 VERSION
-    version 1.100820
+    version 1.100880
 
 SYNOPSIS
       package MyClass;
@@ -31,7 +31,7 @@ DESCRIPTION
     call to one of its accessor makers at the end of the chain.
 
     The accessor generators also generate documentation ready to be used
-    with Pod::Generated.
+    with Sub::Documentation.
 
 METHODS
   mk_new

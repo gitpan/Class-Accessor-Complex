@@ -4,7 +4,7 @@ use strict;
 use Test::More tests => 17;
 
 package Foo;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_hash_accessors(qw(a_hash));
 
 package main;

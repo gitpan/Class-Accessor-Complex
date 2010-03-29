@@ -1,5 +1,10 @@
 Revision history for Perl extension Class-Accessor-Complex
 
+1.100880  2010-03-29 19:47:30 Europe/Vienna
+    - added support for Sub::Documentation and new-style
+      Class::Accessor::Installer
+    - use parent instead of use base
+
 1.100820  2010-03-23 22:37:52 Europe/Vienna
     - converted the distribution to Dist::Zilla-style
 

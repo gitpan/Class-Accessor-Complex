@@ -4,7 +4,7 @@ use strict;
 use Test::More tests => 8;
 
 package Test01;
-use base 'Class::Accessor::Complex';
+use parent 'Class::Accessor::Complex';
 __PACKAGE__->mk_new->mk_integer_accessors(qw(an_integer reset));
 
 # Gen an integer accessor called 'reset' because mk_integer_accessors() also

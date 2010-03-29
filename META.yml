@@ -14,7 +14,7 @@ name: Class-Accessor-Complex
 provides:
   Class::Accessor::Complex:
     file: lib/Class/Accessor/Complex.pm
-    version: 1.100820
+    version: 1.100880
 requires:
   Carp: 0
   Class::Accessor: 0
@@ -33,4 +33,4 @@ resources:
   bugtracker: http://rt.cpan.org/Public/Dist/Display.html?Name=Class-Accessor-Complex
   homepage: http://search.cpan.org/dist/Class-Accessor-Complex/
   repository: http://github.com/hanekomu/Class-Accessor-Complex
-version: 1.100820
+version: 1.100880
